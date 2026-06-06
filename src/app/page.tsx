@@ -126,7 +126,13 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: trimmed }),
       });
-      const data = (await response.json()) as Top30Result | { error?: string };
+
+      let data: Top30Result | { error?: string };
+      try {
+        data = (await response.json()) as Top30Result | { error?: string };
+      } catch {
+        throw new Error("The server returned an unexpected response. Please try again.");
+      }
 
       if (!response.ok) {
         throw new Error("error" in data && data.error ? data.error : "The ranked list could not be generated.");
