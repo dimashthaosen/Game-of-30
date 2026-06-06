@@ -45,3 +45,17 @@ test("creates players, generates a mocked list, saves scores, and shows history"
   await expect(page.getByLabel("Name for Dimash").locator("xpath=ancestor::li")).toContainText("25");
   await expect(page.getByLabel("Name for Alex").locator("xpath=ancestor::li")).toContainText("1");
 });
+
+test("opens the rules window in a mobile layout", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Game rules" }).click();
+
+  await expect(page.getByRole("dialog", { name: "Game rules" })).toBeVisible();
+  await expect(page.getByText("Rank number equals points")).toBeVisible();
+
+  await page.getByRole("button", { name: "Close rules" }).click();
+
+  await expect(page.getByRole("dialog", { name: "Game rules" })).toBeHidden();
+});

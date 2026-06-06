@@ -81,7 +81,9 @@ textarea:focus {
 }
 
 .top-bar,
+.top-actions,
 .panel-heading,
+.rules-header,
 .round-summary,
 .player-row,
 .add-player,
@@ -96,6 +98,10 @@ textarea:focus {
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 18px;
+}
+
+.top-actions {
+  gap: 8px;
 }
 
 h1,
@@ -193,6 +199,46 @@ h2 {
 .icon-button.danger:hover {
   border-color: var(--red);
   color: var(--red);
+}
+
+.rules-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(23, 32, 29, 0.42);
+  padding: 18px;
+}
+
+.rules-dialog {
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100dvh - 36px));
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 28px 80px rgba(23, 32, 29, 0.24);
+  padding: 18px;
+}
+
+.rules-header {
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.rules-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+  color: var(--ink);
+}
+
+.rules-list li {
+  padding-left: 4px;
+  line-height: 1.45;
 }
 
 .add-player {
@@ -462,16 +508,77 @@ h2 {
 
 @media (max-width: 680px) {
   .app-shell {
-    width: min(100vw - 20px, 1480px);
-    padding-top: 14px;
+    width: 100%;
+    padding: 12px 10px 28px;
+  }
+
+  .top-bar {
+    align-items: flex-start;
+    padding-bottom: 12px;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 15vw, 3.5rem);
+  }
+
+  h2 {
+    font-size: 1rem;
+  }
+
+  .eyebrow {
+    font-size: 0.68rem;
+  }
+
+  .top-actions {
+    padding-top: 4px;
+  }
+
+  .icon-button {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+  }
+
+  .scoreboard,
+  .question-panel,
+  .ranking-panel,
+  .score-entry,
+  .history,
+  .idle-board {
+    padding: 12px;
+  }
+
+  .panel-heading {
+    margin-bottom: 10px;
+  }
+
+  .player-row {
+    grid-template-columns: 30px minmax(0, 1fr) minmax(34px, auto) 38px;
+    gap: 6px;
+  }
+
+  .place,
+  .rank {
+    width: 30px;
+    height: 30px;
   }
 
   .question-row {
     display: grid;
   }
 
+  .primary-button {
+    width: 100%;
+    min-height: 50px;
+  }
+
+  textarea {
+    min-height: 104px;
+  }
+
   .ranking-row {
     grid-template-columns: 34px 1fr;
+    align-items: start;
   }
 
   .ranking-row input:nth-of-type(2),
@@ -481,5 +588,44 @@ h2 {
 
   .round-detail ol {
     columns: 1;
+  }
+
+  .rules-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .rules-dialog {
+    width: 100%;
+    max-height: 88dvh;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 8px 8px 0 0;
+    padding: 16px 16px calc(44px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 420px) {
+  .app-shell {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .player-row {
+    grid-template-columns: 28px minmax(0, 1fr) 32px 36px;
+  }
+
+  .player-row strong {
+    min-width: 28px;
+  }
+
+  .score-inputs label {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 86px;
+  }
+
+  .round-summary {
+    padding: 10px;
   }
 }

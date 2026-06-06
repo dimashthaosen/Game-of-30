@@ -6,6 +6,7 @@ import {
   ChevronUp,
   Eraser,
   ExternalLink,
+  HelpCircle,
   Loader2,
   Plus,
   RefreshCw,
@@ -13,6 +14,7 @@ import {
   Trash2,
   Trophy,
   UserPlus,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -65,6 +67,7 @@ export default function Home() {
   const [currentResult, setCurrentResult] = useState<Top30Result | null>(null);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [expandedRoundId, setExpandedRoundId] = useState<string | null>(null);
+  const [isRulesOpen, setIsRulesOpen] = useState(false);
 
   useEffect(() => {
     setGame(parseStoredGameState(window.localStorage.getItem(STORAGE_KEY)));
@@ -83,6 +86,21 @@ export default function Home() {
       ...previous,
     }));
   }, [game.players]);
+
+  useEffect(() => {
+    if (!isRulesOpen) {
+      return;
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsRulesOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isRulesOpen]);
 
   const totals = useMemo(() => calculateTotals(game), [game]);
   const sortedPlayers = useMemo(
@@ -175,10 +193,46 @@ export default function Home() {
           <p className="eyebrow">Local party mode</p>
           <h1>Game of 30</h1>
         </div>
-        <button className="icon-button danger" type="button" onClick={resetGame} aria-label="Reset game" title="Reset game">
-          <RefreshCw aria-hidden="true" size={18} />
-        </button>
+        <div className="top-actions">
+          <button className="icon-button" type="button" onClick={() => setIsRulesOpen(true)} aria-label="Game rules" title="Game rules">
+            <HelpCircle aria-hidden="true" size={18} />
+          </button>
+          <button className="icon-button danger" type="button" onClick={resetGame} aria-label="Reset game" title="Reset game">
+            <RefreshCw aria-hidden="true" size={18} />
+          </button>
+        </div>
       </section>
+
+      {isRulesOpen ? (
+        <div className="rules-backdrop" role="presentation" onClick={() => setIsRulesOpen(false)}>
+          <section
+            aria-labelledby="rules-title"
+            aria-modal="true"
+            className="rules-dialog"
+            role="dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="rules-header">
+              <div>
+                <p className="eyebrow">How to play</p>
+                <h2 id="rules-title">Game rules</h2>
+              </div>
+              <button className="icon-button ghost" type="button" onClick={() => setIsRulesOpen(false)} aria-label="Close rules" title="Close rules">
+                <X aria-hidden="true" size={18} />
+              </button>
+            </div>
+
+            <ol className="rules-list">
+              <li>Pick a ranked question everyone can understand, like most populous countries or biggest movie franchises.</li>
+              <li>Everyone makes one guess before the answer list is revealed.</li>
+              <li>The app generates a Top 30 list, and you can edit the list if the casual search needs cleanup.</li>
+              <li>Rank number equals points: rank 1 gives 1 point, rank 25 gives 25 points.</li>
+              <li>If a guess is not in the Top 30, the usual score is 0.</li>
+              <li>Enter points manually for each player and save the round. Highest total wins.</li>
+            </ol>
+          </section>
+        </div>
+      ) : null}
 
       <section className="layout-grid">
         <aside className="scoreboard panel">
