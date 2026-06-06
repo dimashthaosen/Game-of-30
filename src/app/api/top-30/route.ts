@@ -122,7 +122,7 @@ function mergeGeminiSources(result: Top30ModelResult, groundingSources: Top30Sou
 async function searchWithGemini(question: string, now: string): Promise<Top30Result> {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is missing. Create a free key in Google AI Studio, add it to .env.local, and restart the dev server.");
+    throw new Error("GEMINI_API_KEY is not configured. Add it to your environment variables (locally: .env.local; on Vercel: project Settings → Environment Variables).");
   }
 
   const client = new GoogleGenAI({ apiKey });
