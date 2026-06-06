@@ -127,16 +127,18 @@ async function searchWithGemini(question: string, now: string): Promise<Top30Res
 
   const client = new GoogleGenAI({ apiKey });
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const response = await client.models.generateContent({
-    model,
-    contents: createPrompt(question, now),
-    config: {
-      systemInstruction:
-        "You create casual trivia rankings for a party game. Use Google Search grounding when helpful, return only JSON, and keep item names concise.",
-      tools: [{ googleSearch: {} }],
-      temperature: 0.2,
-    },
-  });
+  const config = {
+    systemInstruction:
+      "You create casual trivia rankings for a party game. Use Google Search grounding when helpful, return only JSON, and keep item names concise.",
+    tools: [{ googleSearch: {} }],
+    temperature: 0.2,
+  };
+
+  let response = await client.models.generateContent({ model, contents: createPrompt(question, now), config });
+
+  if (!response.text?.trim()) {
+    response = await client.models.generateContent({ model, contents: createPrompt(question, now), config });
+  }
 
   const parsed = SearchResultSchema.parse(parseJsonFromModelText(response.text));
   return normalizeTop30Result(
