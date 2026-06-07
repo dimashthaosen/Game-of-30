@@ -22,12 +22,20 @@ export type GameRound = {
   results: PlayerResult[];
 };
 
+export type GameTarget =
+  | { mode: "endless" }
+  | { mode: "points"; value: number }
+  | { mode: "rounds"; value: number };
+
 export type GameState = {
   players: Player[];
   rounds: GameRound[];
+  target: GameTarget;
 };
 
-export const emptyGameState: GameState = { players: [], rounds: [] };
+export const DEFAULT_TARGET: GameTarget = { mode: "endless" };
+
+export const emptyGameState: GameState = { players: [], rounds: [], target: DEFAULT_TARGET };
 
 export function createId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -42,6 +50,7 @@ export function addPlayer(state: GameState, name: string): GameState {
 
 export function removePlayer(state: GameState, playerId: string): GameState {
   return {
+    ...state,
     players: state.players.filter((p) => p.id !== playerId),
     rounds: state.rounds.map((r) => ({
       ...r,
@@ -117,12 +126,64 @@ export function addRound(
   return { ...state, rounds: [round, ...state.rounds] };
 }
 
+export function setTarget(state: GameState, target: GameTarget): GameState {
+  return { ...state, target };
+}
+
+export function adjustRoundScore(
+  state: GameState,
+  roundId: string,
+  playerId: string,
+  points: number
+): GameState {
+  const safe = Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0;
+  return {
+    ...state,
+    rounds: state.rounds.map((round) =>
+      round.id === roundId
+        ? {
+            ...round,
+            results: round.results.map((r) =>
+              r.playerId === playerId ? { ...r, points: safe } : r
+            ),
+          }
+        : round
+    ),
+  };
+}
+
+export function startNewGame(state: GameState): GameState {
+  return { ...state, rounds: [] };
+}
+
+/** Returns true once the game's target has been reached. */
+export function isGameOver(state: GameState): boolean {
+  if (state.rounds.length === 0) return false;
+  const target = state.target ?? DEFAULT_TARGET;
+  if (target.mode === "rounds") return state.rounds.length >= target.value;
+  if (target.mode === "points") {
+    const totals = calculateTotals(state);
+    return Object.values(totals).some((t) => t >= target.value);
+  }
+  return false;
+}
+
+export function describeTarget(target: GameTarget): string {
+  if (target.mode === "points") return `Play to ${target.value}`;
+  if (target.mode === "rounds") return `${target.value} rounds`;
+  return "Endless";
+}
+
 export function parseStoredGameState(value: string | null): GameState {
   if (!value) return emptyGameState;
   try {
-    const parsed = JSON.parse(value) as GameState;
+    const parsed = JSON.parse(value) as Partial<GameState>;
     if (!Array.isArray(parsed.players) || !Array.isArray(parsed.rounds)) return emptyGameState;
-    return parsed;
+    return {
+      players: parsed.players,
+      rounds: parsed.rounds,
+      target: parsed.target ?? DEFAULT_TARGET,
+    };
   } catch {
     return emptyGameState;
   }

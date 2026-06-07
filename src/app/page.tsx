@@ -4,20 +4,38 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   addPlayer,
   addRound,
+  adjustRoundScore,
   calculateTotals,
   emptyGameState,
+  isGameOver,
   matchGuess,
   parseStoredGameState,
   removePlayer,
   renamePlayer,
+  setTarget,
+  startNewGame,
   STORAGE_KEY,
   type GameState,
+  type GameTarget,
   type PlayerResult,
 } from "@/lib/game";
 import { CURATED_QUESTIONS, type QuestionItem } from "@/lib/questions";
 import type { Top30Result } from "@/lib/top30";
 
-type AppView = "home" | "question" | "guess" | "reveal" | "results";
+type AppView = "home" | "question" | "guess" | "reveal" | "results" | "finale";
+
+const TARGET_PRESETS: { label: string; target: GameTarget }[] = [
+  { label: "Endless", target: { mode: "endless" } },
+  { label: "50 pts", target: { mode: "points", value: 50 } },
+  { label: "100 pts", target: { mode: "points", value: 100 } },
+  { label: "5 rounds", target: { mode: "rounds", value: 5 } },
+];
+
+function sameTarget(a: GameTarget, b: GameTarget): boolean {
+  if (a.mode !== b.mode) return false;
+  if (a.mode === "endless" || b.mode === "endless") return true;
+  return a.value === b.value;
+}
 
 type ActiveQuestion = {
   id: string;
@@ -47,6 +65,7 @@ const IcoHelp = (p: IconProps) => (
 const IcoClose = (p: IconProps) => <Svg {...p}><path d="M6 6l12 12M18 6L6 18" /></Svg>;
 const IcoBack = (p: IconProps) => <Svg {...p}><path d="M15 5l-7 7 7 7" /></Svg>;
 const IcoPlus = (p: IconProps) => <Svg {...p}><path d="M12 5v14M5 12h14" /></Svg>;
+const IcoMinus = (p: IconProps) => <Svg {...p}><path d="M5 12h14" /></Svg>;
 const IcoHistory = (p: IconProps) => (
   <Svg {...p}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3 4v3.5h3.5" /><path d="M12 8v4l2.5 1.5" /></Svg>
 );
@@ -236,7 +255,7 @@ function HistorySheet({ game, onClose }: { game: GameState; onClose: () => void 
 // ===== HOME SCREEN =====
 
 function HomeScreen({
-  game, totals, standings, onStart, onAddPlayer, onRemovePlayer, onRenamePlayer, onHelp, onHistory,
+  game, totals, standings, onStart, onAddPlayer, onRemovePlayer, onRenamePlayer, onSetTarget, onHelp, onHistory,
 }: {
   game: GameState;
   totals: Record<string, number>;
@@ -245,6 +264,7 @@ function HomeScreen({
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
   onRenamePlayer: (id: string, name: string) => void;
+  onSetTarget: (target: GameTarget) => void;
   onHelp: () => void;
   onHistory: (() => void) | null;
 }) {
@@ -341,6 +361,27 @@ function HomeScreen({
         </div>
 
         <div className="mt-auto stack" style={{ gap: 10 }}>
+          {!hasRounds && (
+            <div style={{ marginBottom: 4 }}>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>Game length</div>
+              <div className="chips">
+                {TARGET_PRESETS.map((preset) => {
+                  const active = sameTarget(game.target, preset.target);
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className={`btn sm ${active ? "primary" : "ghost"}`}
+                      style={{ flex: 1, minWidth: 0, paddingInline: 8 }}
+                      onClick={() => onSetTarget(preset.target)}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <button className="btn primary block" disabled={game.players.length === 0} onClick={onStart}>
             <IcoTarget size={20} /> Start a round
           </button>
@@ -667,15 +708,19 @@ function RevealScreen({ question, players, guesses, onDone, onBack }: {
 
 // ===== RESULTS SCREEN =====
 
-function ResultsScreen({ results, roundNo, totals, standings, players, onNext, onHome }: {
+function ResultsScreen({ results, roundNo, totals, standings, players, gameOver, onAdjustScore, onNext, onFinale, onHome }: {
   results: PlayerResult[];
   roundNo: number;
   totals: Record<string, number>;
   standings: GameState["players"];
   players: GameState["players"];
+  gameOver: boolean;
+  onAdjustScore: (playerId: string, points: number) => void;
   onNext: () => void;
+  onFinale: () => void;
   onHome: () => void;
 }) {
+  const [editing, setEditing] = useState(false);
   const ranked = [...results].sort((a, b) => b.points - a.points);
   const top = ranked[0];
   const tieCount = ranked.filter((r) => r.points === top?.points && top.points > 0).length;
@@ -707,8 +752,18 @@ function ResultsScreen({ results, roundNo, totals, standings, players, onNext, o
           )}
         </div>
 
-        <span className="eyebrow">This round</span>
-        <div className="card" style={{ padding: "4px 14px", margin: "8px 0 18px" }}>
+        <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
+          <span className="eyebrow">This round</span>
+          <button
+            type="button"
+            className="eyebrow"
+            style={{ color: editing ? "var(--ink)" : "var(--ink-3)", letterSpacing: "0.08em" }}
+            onClick={() => setEditing((v) => !v)}
+          >
+            {editing ? "Done" : "Adjust"}
+          </button>
+        </div>
+        <div className="card" style={{ padding: "4px 14px", margin: "0 0 18px" }}>
           {ranked.map((r) => (
             <div className="score-row" key={r.playerId}>
               <span className="place">
@@ -717,13 +772,37 @@ function ResultsScreen({ results, roundNo, totals, standings, players, onNext, o
               <span className="who" style={{ flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
                 <b style={{ fontWeight: 600 }}>{nameOf(r.playerId)}</b>
                 <span style={{ fontSize: "0.86rem", color: "var(--ink-2)" }}>
-                  {r.guess ? `"${r.guess}"` : "no guess"}
+                  {r.guess ? `“${r.guess}”` : "no guess"}
                   {r.rank ? ` · #${r.rank}` : r.guess && !r.rank ? " · not on the list" : ""}
                 </span>
               </span>
-              <span className="pts tnum" style={{ color: r.points > 0 ? "var(--ink)" : "var(--ink-3)" }}>
-                +{r.points}
-              </span>
+              {editing ? (
+                <span className="row" style={{ gap: 8 }}>
+                  <button
+                    type="button"
+                    className="iconbtn"
+                    style={{ width: 30, height: 30, border: "1.5px solid var(--line-strong)" }}
+                    onClick={() => onAdjustScore(r.playerId, r.points - 1)}
+                    aria-label={`Lower ${nameOf(r.playerId)}'s score`}
+                  >
+                    <IcoMinus size={16} />
+                  </button>
+                  <span className="pts tnum" style={{ minWidth: 28, textAlign: "center", fontSize: "1.25rem" }}>{r.points}</span>
+                  <button
+                    type="button"
+                    className="iconbtn"
+                    style={{ width: 30, height: 30, border: "1.5px solid var(--line-strong)" }}
+                    onClick={() => onAdjustScore(r.playerId, r.points + 1)}
+                    aria-label={`Raise ${nameOf(r.playerId)}'s score`}
+                  >
+                    <IcoPlus size={16} />
+                  </button>
+                </span>
+              ) : (
+                <span className="pts tnum" style={{ color: r.points > 0 ? "var(--ink)" : "var(--ink-3)" }}>
+                  +{r.points}
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -742,7 +821,64 @@ function ResultsScreen({ results, roundNo, totals, standings, players, onNext, o
         </div>
 
         <div className="mt-auto stack" style={{ gap: 10, paddingTop: 22 }}>
-          <button className="btn primary block" onClick={onNext}><IcoTarget size={18} /> Next round</button>
+          {gameOver ? (
+            <button className="btn primary block" onClick={onFinale}><IcoCrown size={18} /> See final results</button>
+          ) : (
+            <button className="btn primary block" onClick={onNext}><IcoTarget size={18} /> Next round</button>
+          )}
+          <button className="btn ghost block" onClick={onHome}>Back to home</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ===== FINALE SCREEN =====
+
+function FinaleScreen({ standings, totals, onNewGame, onHome }: {
+  standings: GameState["players"];
+  totals: Record<string, number>;
+  onNewGame: () => void;
+  onHome: () => void;
+}) {
+  const topScore = standings.length ? totals[standings[0].id] ?? 0 : 0;
+  const champions = standings.filter((p) => (totals[p.id] ?? 0) === topScore && topScore > 0);
+  const tie = champions.length > 1;
+
+  return (
+    <>
+      <TopBar />
+      <div className="screen screen-enter">
+        <div className="center" style={{ marginBottom: 20 }}>
+          <div className="eyebrow">Game over</div>
+          <div style={{ color: "var(--accent)", marginTop: 10 }}><IcoCrown size={48} /></div>
+          {tie ? (
+            <h1 className="display" style={{ fontSize: "2.2rem", margin: "8px 0 0" }}>It&rsquo;s a draw!</h1>
+          ) : (
+            <>
+              <h1 className="display" style={{ fontSize: "2.4rem", margin: "8px 0 0" }}>{champions[0]?.name ?? "Nobody"} wins</h1>
+              <p className="muted" style={{ marginTop: 6 }}>
+                with <b style={{ color: "var(--ink)" }}>{topScore} points</b>
+              </p>
+            </>
+          )}
+        </div>
+
+        <span className="eyebrow">Final standings</span>
+        <div className="card" style={{ padding: "4px 14px", margin: "8px 0 0" }}>
+          {standings.map((p, i) => (
+            <div className={`score-row${i === 0 ? " leader" : ""}`} key={p.id}>
+              <span className="place">
+                {i === 0 ? <span className="crown"><IcoCrown size={18} /></span> : i + 1}
+              </span>
+              <span className="who"><Avatar player={p} size={28} />{p.name}</span>
+              <span className="pts tnum">{totals[p.id] ?? 0}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto stack" style={{ gap: 10, paddingTop: 22 }}>
+          <button className="btn primary block" onClick={onNewGame}><IcoTarget size={18} /> New game</button>
           <button className="btn ghost block" onClick={onHome}>Back to home</button>
         </div>
       </div>
@@ -788,6 +924,19 @@ export default function Home() {
     setView("results");
   };
 
+  const handleAdjustScore = (playerId: string, points: number) => {
+    const roundId = game.rounds[0]?.id;
+    if (!roundId) return;
+    const safe = Math.max(0, Math.floor(points));
+    setGame((g) => adjustRoundScore(g, roundId, playerId, safe));
+    setRoundResults((rs) => (rs ? rs.map((r) => (r.playerId === playerId ? { ...r, points: safe } : r)) : rs));
+  };
+
+  const newGame = () => {
+    setGame((g) => startNewGame(g));
+    goHome();
+  };
+
   return (
     <div className="stage">
       <div className="app">
@@ -798,6 +947,7 @@ export default function Home() {
             onAddPlayer={(name) => setGame((g) => addPlayer(g, name))}
             onRemovePlayer={(id) => setGame((g) => removePlayer(g, id))}
             onRenamePlayer={(id, name) => setGame((g) => renamePlayer(g, id, name))}
+            onSetTarget={(target) => setGame((g) => setTarget(g, target))}
             onHelp={() => setShowRules(true)}
             onHistory={game.rounds.length > 0 ? () => setShowHistory(true) : null}
           />
@@ -834,7 +984,18 @@ export default function Home() {
             totals={totals}
             standings={standings}
             players={game.players}
+            gameOver={isGameOver(game)}
+            onAdjustScore={handleAdjustScore}
             onNext={startRound}
+            onFinale={() => setView("finale")}
+            onHome={goHome}
+          />
+        )}
+        {view === "finale" && (
+          <FinaleScreen
+            standings={standings}
+            totals={totals}
+            onNewGame={newGame}
             onHome={goHome}
           />
         )}
