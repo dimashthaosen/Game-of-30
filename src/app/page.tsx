@@ -171,7 +171,7 @@ function RulesSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-function HistorySheet({ game, totals, onClose }: { game: GameState; totals: Record<string, number>; onClose: () => void }) {
+function HistorySheet({ game, onClose }: { game: GameState; onClose: () => void }) {
   const [open, setOpen] = useState<string | null>(null);
   const nameOf = (id: string) => game.players.find((p) => p.id === id)?.name ?? "Removed";
 
@@ -215,7 +215,7 @@ function HistorySheet({ game, totals, onClose }: { game: GameState; totals: Reco
                           <span className="who">
                             {nameOf(r.playerId)}
                             {r.guess
-                              ? <span className="muted" style={{ fontWeight: 400, fontSize: "0.85rem" }}>· "{r.guess}"</span>
+                              ? <span className="muted" style={{ fontWeight: 400, fontSize: "0.85rem" }}>· &ldquo;{r.guess}&rdquo;</span>
                               : null}
                           </span>
                           <span className="pts tnum" style={{ fontSize: "1.2rem" }}>+{r.points}</span>
@@ -513,9 +513,9 @@ function GuessScreen({ question, players, onComplete, onBack }: {
               <div className="eyebrow">Pass the phone to</div>
               <h2 className="display" style={{ fontSize: "2.4rem", margin: "6px 0 0" }}>{player.name}</h2>
             </div>
-            <p className="muted" style={{ maxWidth: 280 }}>Keep your answer secret. Tap when you're holding the phone.</p>
+            <p className="muted" style={{ maxWidth: 280 }}>Keep your answer secret. Tap when you&rsquo;re holding the phone.</p>
             <button className="btn dark" onClick={() => setPhase("input")}>
-              <IcoEye size={18} /> I'm {player.name}
+              <IcoEye size={18} /> I&rsquo;m {player.name}
             </button>
           </div>
         ) : (
@@ -667,8 +667,7 @@ function RevealScreen({ question, players, guesses, onDone, onBack }: {
 
 // ===== RESULTS SCREEN =====
 
-function ResultsScreen({ question, results, roundNo, totals, standings, players, onNext, onHome }: {
-  question: ActiveQuestion;
+function ResultsScreen({ results, roundNo, totals, standings, players, onNext, onHome }: {
   results: PlayerResult[];
   roundNo: number;
   totals: Record<string, number>;
@@ -694,7 +693,7 @@ function ResultsScreen({ question, results, roundNo, totals, standings, players,
               <div style={{ color: "var(--accent)", marginTop: 8 }}><IcoCrown size={40} /></div>
               <h2 className="display" style={{ fontSize: "2rem", margin: "4px 0 0" }}>{nameOf(winner.playerId)} takes it</h2>
               <p className="muted" style={{ marginTop: 4 }}>
-                "{winner.guess || "—"}" {winner.rank ? `ranked #${winner.rank}` : ""} for{" "}
+                &ldquo;{winner.guess || "—"}&rdquo; {winner.rank ? `ranked #${winner.rank}` : ""} for{" "}
                 <b style={{ color: "var(--ink)" }}>{winner.points} points</b>
               </p>
             </>
@@ -830,7 +829,6 @@ export default function Home() {
         )}
         {view === "results" && activeQuestion && roundResults && (
           <ResultsScreen
-            question={activeQuestion}
             results={roundResults}
             roundNo={game.rounds.length}
             totals={totals}
@@ -842,7 +840,7 @@ export default function Home() {
         )}
 
         {showRules && <RulesSheet onClose={() => setShowRules(false)} />}
-        {showHistory && <HistorySheet game={game} totals={totals} onClose={() => setShowHistory(false)} />}
+        {showHistory && <HistorySheet game={game} onClose={() => setShowHistory(false)} />}
       </div>
     </div>
   );
