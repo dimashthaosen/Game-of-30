@@ -69,6 +69,9 @@ const IcoMinus = (p: IconProps) => <Svg {...p}><path d="M5 12h14" /></Svg>;
 const IcoHistory = (p: IconProps) => (
   <Svg {...p}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3 4v3.5h3.5" /><path d="M12 8v4l2.5 1.5" /></Svg>
 );
+const IcoReset = (p: IconProps) => (
+  <Svg {...p}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3 4v3.5h3.5" /></Svg>
+);
 const IcoChevron = (p: IconProps) => <Svg {...p}><path d="M9 6l6 6-6 6" /></Svg>;
 const IcoCrown = ({ size = 18 }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -120,7 +123,7 @@ function Avatar({ player, size = 30 }: { player: { id: string; name: string }; s
 
 // ===== SHARED UI =====
 
-function TopBar({ onBack, onHelp, onHistory }: { onBack?: () => void; onHelp?: () => void; onHistory?: () => void }) {
+function TopBar({ onBack, onHelp, onHistory, onReset }: { onBack?: () => void; onHelp?: () => void; onHistory?: () => void; onReset?: () => void }) {
   return (
     <header className="topbar">
       {onBack ? (
@@ -133,6 +136,7 @@ function TopBar({ onBack, onHelp, onHistory }: { onBack?: () => void; onHelp?: (
       )}
       <div className="spacer" />
       <div className="topbar-actions">
+        {onReset && <button className="iconbtn" onClick={onReset} aria-label="Reset game"><IcoReset /></button>}
         {onHistory && <button className="iconbtn" onClick={onHistory} aria-label="History"><IcoHistory /></button>}
         {onHelp && <button className="iconbtn" onClick={onHelp} aria-label="How to play"><IcoHelp /></button>}
       </div>
@@ -255,7 +259,7 @@ function HistorySheet({ game, onClose }: { game: GameState; onClose: () => void 
 // ===== HOME SCREEN =====
 
 function HomeScreen({
-  game, totals, standings, onStart, onAddPlayer, onRemovePlayer, onRenamePlayer, onSetTarget, onHelp, onHistory,
+  game, totals, standings, onStart, onAddPlayer, onRemovePlayer, onRenamePlayer, onSetTarget, onReset, onHelp, onHistory,
 }: {
   game: GameState;
   totals: Record<string, number>;
@@ -265,6 +269,7 @@ function HomeScreen({
   onRemovePlayer: (id: string) => void;
   onRenamePlayer: (id: string, name: string) => void;
   onSetTarget: (target: GameTarget) => void;
+  onReset: () => void;
   onHelp: () => void;
   onHistory: (() => void) | null;
 }) {
@@ -281,7 +286,11 @@ function HomeScreen({
 
   return (
     <>
-      <TopBar onHelp={onHelp} onHistory={hasRounds && onHistory ? onHistory : undefined} />
+      <TopBar
+        onHelp={onHelp}
+        onHistory={hasRounds && onHistory ? onHistory : undefined}
+        onReset={hasRounds ? onReset : undefined}
+      />
       <div className="screen screen-enter">
         <div style={{ marginBottom: 18 }}>
           <div className="eyebrow">A local party game</div>
@@ -948,6 +957,11 @@ export default function Home() {
             onRemovePlayer={(id) => setGame((g) => removePlayer(g, id))}
             onRenamePlayer={(id, name) => setGame((g) => renamePlayer(g, id, name))}
             onSetTarget={(target) => setGame((g) => setTarget(g, target))}
+            onReset={() => {
+              if (window.confirm("Clear all rounds and start over? Players are kept.")) {
+                setGame((g) => startNewGame(g));
+              }
+            }}
             onHelp={() => setShowRules(true)}
             onHistory={game.rounds.length > 0 ? () => setShowHistory(true) : null}
           />

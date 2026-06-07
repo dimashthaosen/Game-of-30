@@ -243,4 +243,71 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
       "Western Punjabi": ["punjabi"],
     },
   },
+  {
+    id: "in-states",
+    cat: "India",
+    q: "Most populous states in India",
+    basis: "By population, 2011 census & estimates",
+    items: L(
+      ["Uttar Pradesh", "UP"], "Maharashtra", "Bihar", ["West Bengal", "Bengal"], ["Madhya Pradesh", "MP"],
+      "Tamil Nadu", "Rajasthan", "Karnataka", "Gujarat", ["Andhra Pradesh", "AP"],
+      "Odisha", "Telangana", "Kerala", "Jharkhand", "Assam",
+      "Punjab", "Chhattisgarh", "Haryana", ["Delhi", "NCT"], ["Jammu & Kashmir", "J&K"],
+      "Uttarakhand", "Himachal Pradesh", "Tripura", "Meghalaya", "Manipur",
+      "Nagaland", "Goa", "Arunachal Pradesh", "Mizoram", "Sikkim"
+    ),
+    aliases: {
+      "Uttar Pradesh": ["up"],
+      "Madhya Pradesh": ["mp"],
+      "Andhra Pradesh": ["ap"],
+      "Tamil Nadu": ["tn"],
+      "West Bengal": ["bengal", "wb"],
+      "Jammu & Kashmir": ["kashmir", "j and k", "jk"],
+      "Delhi": ["new delhi"],
+    },
+  },
+  {
+    id: "in-cities",
+    cat: "India",
+    q: "Most populous cities in India",
+    basis: "By city population, 2011 census",
+    items: L(
+      ["Mumbai", "Bombay"], "Delhi", ["Bangalore", "Bengaluru"], "Hyderabad", "Ahmedabad",
+      ["Chennai", "Madras"], ["Kolkata", "Calcutta"], "Surat", "Pune", "Jaipur",
+      "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane",
+      "Bhopal", ["Visakhapatnam", "Vizag"], "Patna", ["Vadodara", "Baroda"], "Ghaziabad",
+      "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut",
+      "Rajkot", ["Varanasi", "Banaras"], "Srinagar", "Aurangabad", "Dhanbad"
+    ),
+    aliases: {
+      "Mumbai": ["bombay"],
+      "Bangalore": ["bengaluru"],
+      "Chennai": ["madras"],
+      "Kolkata": ["calcutta"],
+      "Visakhapatnam": ["vizag", "vishakhapatnam"],
+      "Vadodara": ["baroda"],
+      "Varanasi": ["banaras", "benares", "kashi"],
+    },
+  },
+  {
+    id: "in-films",
+    cat: "India",
+    q: "Highest-grossing Indian films",
+    basis: "By worldwide gross, approximate",
+    items: L(
+      "Dangal", ["Baahubali 2: The Conclusion", "Bahubali 2"], "RRR", ["KGF: Chapter 2", "KGF 2"], "Pathaan",
+      "Jawan", ["Baahubali: The Beginning", "Bahubali 1"], "Kalki 2898 AD", "Animal", "Stree 2",
+      "Secret Superstar", "PK", "Gadar 2", "Salaar", "Jailer",
+      "Sanju", "Tiger Zinda Hai", "Padmaavat", ["2.0", "Robot 2"], "Sultan",
+      "War", "Chennai Express", "Bajrangi Bhaijaan", ["Pushpa: The Rise", "Pushpa"], "Kabir Singh",
+      "Brahmastra", "Tanhaji", "Dhoom 3", "Saaho", "Krrish 3"
+    ),
+    aliases: {
+      "Baahubali 2: The Conclusion": ["bahubali 2", "baahubali 2"],
+      "KGF: Chapter 2": ["kgf 2", "kgf chapter 2"],
+      "Baahubali: The Beginning": ["bahubali", "baahubali", "bahubali 1"],
+      "2.0": ["robot 2", "2 point 0"],
+      "Pushpa: The Rise": ["pushpa"],
+    },
+  },
 ];
