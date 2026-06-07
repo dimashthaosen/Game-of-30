@@ -264,10 +264,10 @@ function HomeScreen({
       <TopBar onHelp={onHelp} onHistory={hasRounds && onHistory ? onHistory : undefined} />
       <div className="screen screen-enter">
         <div style={{ marginBottom: 18 }}>
-          <div className="eyebrow">A local party game of nerve</div>
-          <h1 className="display" style={{ margin: "8px 0 10px" }}>Guess the<br />deep cuts.</h1>
+          <div className="eyebrow">A local party game</div>
+          <h1 className="display" style={{ margin: "8px 0 10px" }}>Aim for<br />the bottom.</h1>
           <p className="lede" style={{ maxWidth: 360 }}>
-            Name what <em>barely</em> makes the Top&nbsp;30. The lower the rank, the bigger the points.
+            Guess a real answer that <em>barely</em> cracks the Top&nbsp;30. The lower it ranks, the more you score.
           </p>
         </div>
 
