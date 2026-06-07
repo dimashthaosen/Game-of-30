@@ -24,14 +24,14 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     id: "countries",
     cat: "Geography",
     q: "Most populous countries in the world",
-    basis: "By estimated population, 2024",
+    basis: "By population, 2025 estimates",
     items: L(
       "India", "China", ["United States", "USA"], "Indonesia", "Pakistan",
       "Nigeria", "Brazil", "Bangladesh", "Russia", "Mexico",
-      "Japan", "Ethiopia", "Philippines", "Egypt", "DR Congo",
+      "Ethiopia", "Japan", "Philippines", "Egypt", "DR Congo",
       "Vietnam", "Iran", "Turkey", "Germany", "Thailand",
-      ["United Kingdom", "UK"], "France", "Tanzania", "South Africa", "Italy",
-      "Kenya", "Myanmar", "Colombia", "South Korea", "Uganda"
+      ["United Kingdom", "UK"], "Tanzania", "France", "South Africa", "Italy",
+      "Kenya", "Myanmar", "Colombia", "South Korea", "Sudan"
     ),
     aliases: {
       "United States": ["usa", "us", "america", "united states of america"],
@@ -87,21 +87,21 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     id: "buildings",
     cat: "Architecture",
     q: "Tallest completed buildings in the world",
-    basis: "By architectural height",
+    basis: "By architectural height, completed",
     items: L(
       ["Burj Khalifa", "Dubai"], ["Merdeka 118", "Kuala Lumpur"], ["Shanghai Tower", "Shanghai"],
-      ["Abraj Al-Bait", "Mecca"], ["Ping An Finance Center", "Shenzhen"],
+      ["Mecca Royal Clock Tower", "Mecca"], ["Ping An Finance Centre", "Shenzhen"],
       ["Lotte World Tower", "Seoul"], ["One World Trade Center", "New York"],
       ["Guangzhou CTF", "Guangzhou"], ["Tianjin CTF", "Tianjin"], ["CITIC Tower", "Beijing"],
       ["Taipei 101", "Taipei"], ["Shanghai World Financial Center", "Shanghai"],
-      ["International Commerce Centre", "Hong Kong"], ["Central Park Tower", "New York"],
-      ["Lakhta Center", "St Petersburg"], ["Landmark 81", "Ho Chi Minh City"],
-      ["Changsha IFS Tower", "Changsha"], ["Petronas Tower 1", "Kuala Lumpur"],
-      ["Petronas Tower 2", "Kuala Lumpur"], ["Zifeng Tower", "Nanjing"],
-      ["The Exchange 106", "Kuala Lumpur"], ["Wuhan Center", "Wuhan"],
+      ["International Commerce Centre", "Hong Kong"], ["Wuhan Greenland Center", "Wuhan"],
+      ["Central Park Tower", "New York"], ["Lakhta Center", "St Petersburg"],
+      ["Landmark 81", "Ho Chi Minh City"], ["International Land-Sea Center", "Chongqing"],
+      ["The Exchange 106", "Kuala Lumpur"], ["Changsha IFS Tower", "Changsha"],
+      ["Petronas Tower 1", "Kuala Lumpur"], ["Petronas Tower 2", "Kuala Lumpur"],
+      ["Zifeng Tower", "Nanjing"], ["Suzhou IFS", "Suzhou"], ["Wuhan Center", "Wuhan"],
       ["Willis Tower", "Chicago"], ["KK100", "Shenzhen"], ["Guangzhou IFC", "Guangzhou"],
-      ["111 West 57th Street", "New York"], ["One Vanderbilt", "New York"],
-      ["432 Park Avenue", "New York"], ["Marina 101", "Dubai"], ["Trump Tower Chicago", "Chicago"]
+      ["111 West 57th Street", "New York"], ["Shandong IFC", "Jinan"]
     ),
     aliases: {
       "Burj Khalifa": ["burj"],
@@ -149,12 +149,12 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     q: "Highest-grossing films of all time",
     basis: "By worldwide box office, unadjusted",
     items: L(
-      "Avatar", ["Avengers: Endgame", "Endgame"], ["Avatar: The Way of Water", "Avatar 2"], "Titanic", ["Star Wars: The Force Awakens", "The Force Awakens"],
-      ["Avengers: Infinity War", "Infinity War"], ["Spider-Man: No Way Home", "No Way Home"], "Inside Out 2", "Jurassic World", ["The Lion King", "2019 remake"],
-      "The Avengers", "Furious 7", ["Top Gun: Maverick", "Maverick"], "Frozen II", "Barbie",
-      ["Avengers: Age of Ultron", "Age of Ultron"], "The Super Mario Bros. Movie", "Black Panther", ["Harry Potter and the Deathly Hallows – Part 2", "Deathly Hallows 2"], ["Star Wars: The Last Jedi", "The Last Jedi"],
-      "Jurassic World: Fallen Kingdom", "Frozen", ["Beauty and the Beast", "2017 remake"], "Incredibles 2", "The Fate of the Furious",
-      "Iron Man 3", "Minions", ["Captain America: Civil War", "Civil War"], "Aquaman", ["The Lord of the Rings: The Return of the King", "Return of the King"]
+      "Avatar", ["Avengers: Endgame", "Endgame"], ["Avatar: The Way of Water", "Avatar 2"], "Titanic", "Ne Zha 2",
+      ["Star Wars: The Force Awakens", "The Force Awakens"], ["Avengers: Infinity War", "Infinity War"], ["Spider-Man: No Way Home", "No Way Home"], "Zootopia 2", "Inside Out 2",
+      "Jurassic World", ["The Lion King", "2019 remake"], "The Avengers", "Furious 7", ["Top Gun: Maverick", "Maverick"],
+      ["Avatar: Fire and Ash", "Avatar 3"], "Frozen II", "Barbie", ["Avengers: Age of Ultron", "Age of Ultron"], "The Super Mario Bros. Movie",
+      "Black Panther", ["Harry Potter and the Deathly Hallows – Part 2", "Deathly Hallows 2"], ["Deadpool & Wolverine", "Deadpool 3"], ["Star Wars: The Last Jedi", "The Last Jedi"], "Jurassic World: Fallen Kingdom",
+      "Frozen", ["Beauty and the Beast", "2017 remake"], "Incredibles 2", "The Fate of the Furious", "Iron Man 3"
     ),
     aliases: {
       "Avengers: Endgame": ["endgame", "avengers endgame"],
@@ -178,12 +178,12 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     q: "Best-selling video games of all time",
     basis: "By units sold, approximate",
     items: L(
-      "Minecraft", ["Grand Theft Auto V", "GTA V"], "Tetris", "Wii Sports", ["PUBG: Battlegrounds", "PUBG"],
-      ["Mario Kart 8", "incl. Deluxe"], "Red Dead Redemption 2", ["The Witcher 3", "Wild Hunt"], "Terraria", "Super Mario Bros.",
-      ["The Legend of Zelda: Breath of the Wild", "BOTW"], "Animal Crossing: New Horizons", "Human: Fall Flat", ["Pokémon Red/Green/Blue", "Gen 1"], "New Super Mario Bros.",
-      "Diablo III", "Wii Sports Resort", "Pac-Man", "New Super Mario Bros. Wii", "Elden Ring",
-      ["The Elder Scrolls V: Skyrim", "Skyrim"], "Borderlands 2", "FIFA 18", "Grand Theft Auto: San Andreas", "Super Mario Odyssey",
-      "Wii Fit", "Kinect Adventures!", "Call of Duty: Black Ops", "Grand Theft Auto IV", "Super Smash Bros. Ultimate"
+      "Tetris", "Minecraft", ["Grand Theft Auto V", "GTA V"], "Red Dead Redemption 2", "Wii Sports",
+      ["Mario Kart 8", "incl. Deluxe"], ["PUBG: Battlegrounds", "PUBG"], "Terraria", ["The Witcher 3", "Wild Hunt"], "Super Mario Bros.",
+      "Human: Fall Flat", "Overwatch", "The Sims", "Stardew Valley", "Animal Crossing: New Horizons",
+      ["Pokémon Red/Blue/Yellow", "Gen 1"], "Wii Fit", "Call of Duty: Black Ops III", "Call of Duty: Modern Warfare", "Hogwarts Legacy",
+      "Payday 2", "Sonic the Hedgehog", "Super Smash Bros. Ultimate", "Mario Kart Wii", ["The Legend of Zelda: Breath of the Wild", "BOTW"],
+      "Cyberpunk 2077", "Wii Sports Resort", "New Super Mario Bros.", "Super Mario Odyssey", "New Super Mario Bros. Wii"
     ),
     aliases: {
       "Grand Theft Auto V": ["gta v", "gta 5", "gta5", "gta"],
@@ -193,12 +193,10 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
       "The Witcher 3": ["witcher 3", "the witcher 3", "wild hunt"],
       "The Legend of Zelda: Breath of the Wild": ["breath of the wild", "botw", "zelda breath of the wild"],
       "Animal Crossing: New Horizons": ["animal crossing"],
-      "Pokémon Red/Green/Blue": ["pokemon red", "pokemon blue", "pokemon"],
-      "The Elder Scrolls V: Skyrim": ["skyrim"],
-      "Grand Theft Auto: San Andreas": ["san andreas", "gta san andreas"],
+      "Pokémon Red/Blue/Yellow": ["pokemon red", "pokemon blue", "pokemon"],
+      "Call of Duty: Black Ops III": ["black ops 3", "cod black ops", "black ops"],
+      "Call of Duty: Modern Warfare": ["modern warfare", "cod mw"],
       "Super Mario Odyssey": ["mario odyssey"],
-      "Call of Duty: Black Ops": ["black ops", "cod black ops"],
-      "Grand Theft Auto IV": ["gta iv", "gta 4"],
       "Super Smash Bros. Ultimate": ["smash ultimate", "super smash bros"],
     },
   },
@@ -227,14 +225,14 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     id: "languages",
     cat: "Language",
     q: "Most spoken languages in the world",
-    basis: "By total speakers, approximate",
+    basis: "By total speakers, Ethnologue 2026",
     items: L(
-      "English", ["Mandarin Chinese", "Mandarin"], "Hindi", "Spanish", "French",
-      "Arabic", "Bengali", "Portuguese", "Russian", "Urdu",
-      "Indonesian", "German", "Japanese", "Nigerian Pidgin", "Marathi",
-      "Telugu", "Turkish", "Tamil", ["Cantonese", "Yue"], "Vietnamese",
-      "Wu Chinese", "Tagalog", "Korean", ["Persian", "Farsi"], "Hausa",
-      "Swahili", "Javanese", "Italian", ["Western Punjabi", "Punjabi"], "Gujarati"
+      "English", ["Mandarin Chinese", "Mandarin"], "Hindi", "Spanish", "Arabic",
+      "French", "Bengali", "Portuguese", "Indonesian", "Urdu",
+      "Russian", "German", "Japanese", "Nigerian Pidgin", "Egyptian Arabic",
+      "Marathi", "Vietnamese", "Telugu", "Swahili", "Hausa",
+      "Turkish", ["Western Punjabi", "Punjabi"], "Tagalog", "Tamil", ["Cantonese", "Yue"],
+      "Wu Chinese", ["Persian", "Farsi"], "Korean", "Amharic", "Thai"
     ),
     aliases: {
       "Mandarin Chinese": ["mandarin", "chinese"],
@@ -295,19 +293,20 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     q: "Highest-grossing Indian films",
     basis: "By worldwide gross, approximate",
     items: L(
-      "Dangal", ["Baahubali 2: The Conclusion", "Bahubali 2"], "RRR", ["KGF: Chapter 2", "KGF 2"], "Pathaan",
-      "Jawan", ["Baahubali: The Beginning", "Bahubali 1"], "Kalki 2898 AD", "Animal", "Stree 2",
-      "Secret Superstar", "PK", "Gadar 2", "Salaar", "Jailer",
-      "Sanju", "Tiger Zinda Hai", "Padmaavat", ["2.0", "Robot 2"], "Sultan",
-      "War", "Chennai Express", "Bajrangi Bhaijaan", ["Pushpa: The Rise", "Pushpa"], "Kabir Singh",
-      "Brahmastra", "Tanhaji", "Dhoom 3", "Saaho", "Krrish 3"
+      "Dangal", ["Baahubali 2: The Conclusion", "Bahubali 2"], ["Pushpa 2: The Rule", "Pushpa 2"], "RRR", ["KGF: Chapter 2", "KGF 2"],
+      "Jawan", "Pathaan", "Kalki 2898 AD", "Animal", "Bajrangi Bhaijaan",
+      "Stree 2", "Secret Superstar", "Chhaava", "PK", ["2.0", "Robot 2"],
+      "Gadar 2", "Sultan", "Salaar", "Jailer", ["Baahubali: The Beginning", "Bahubali 1"],
+      "Leo", "Sanju", "Tiger Zinda Hai", "Padmaavat", "Dhoom 3",
+      ["Kantara: Chapter 1", "Kantara"], "Saaho", "War", "Brahmastra", "Kabir Singh"
     ),
     aliases: {
       "Baahubali 2: The Conclusion": ["bahubali 2", "baahubali 2"],
+      "Pushpa 2: The Rule": ["pushpa 2", "pushpa two"],
       "KGF: Chapter 2": ["kgf 2", "kgf chapter 2"],
       "Baahubali: The Beginning": ["bahubali", "baahubali", "bahubali 1"],
       "2.0": ["robot 2", "2 point 0"],
-      "Pushpa: The Rise": ["pushpa"],
+      "Kantara: Chapter 1": ["kantara"],
     },
   },
   {
@@ -374,33 +373,34 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     q: "Highest-grossing animated films",
     basis: "By worldwide box office",
     items: L(
-      "Inside Out 2", ["The Super Mario Bros. Movie", "Mario Movie"], "Frozen II", "Incredibles 2", "Minions",
-      "Toy Story 4", "Toy Story 3", "Frozen", "Despicable Me 3", "Finding Dory",
-      "Zootopia", "Despicable Me 2", "Moana 2", "Inside Out", "Coco",
-      "Shrek 2", "Minions: The Rise of Gru", "Sing", "The Secret Life of Pets", "Despicable Me",
-      "Kung Fu Panda 2", "Finding Nemo", "Shrek the Third", "Shrek Forever After", "Up",
-      "Madagascar 3", "Monsters University", "How to Train Your Dragon 2", "Big Hero 6", "Ne Zha 2"
+      "Ne Zha 2", "Zootopia 2", "Inside Out 2", ["The Lion King", "2019"], "Frozen II",
+      ["The Super Mario Bros. Movie", "Mario Movie"], "Frozen", "Incredibles 2", "Minions", "Toy Story 4",
+      "Toy Story 3", "Moana 2", "Despicable Me 3", "Finding Dory", "Zootopia",
+      "Despicable Me 4", "Despicable Me 2", ["The Lion King (1994)", "original"], "Finding Nemo", "Minions: The Rise of Gru",
+      "Shrek 2", "Ice Age: Dawn of the Dinosaurs", "The Secret Life of Pets", "Inside Out", "Coco",
+      "Shrek the Third", "Demon Slayer: Infinity Castle", "Shrek Forever After", "Up", "Despicable Me"
     ),
     aliases: {
       "The Super Mario Bros. Movie": ["mario movie", "super mario movie"],
+      "Ne Zha 2": ["nezha 2", "ne zha 2"],
     },
   },
   {
     id: "youtube",
     cat: "Internet",
     q: "Most-subscribed YouTube channels",
-    basis: "By subscribers, as of 2024",
+    basis: "By subscribers, as of 2026",
     items: L(
-      "MrBeast", "T-Series", "Cocomelon", "SET India", "Kids Diana Show",
-      "Vlad and Niki", "Like Nastya", "PewDiePie", "Zee Music Company", "WWE",
-      "Sony SAB", "5-Minute Crafts", "Goldmines", "Colors TV", "Sony Entertainment Television",
-      "BangtanTV", "Justin Bieber", "Pinkfong", "Marshmello", "El Reino Infantil",
-      "BLACKPINK", "ChuChu TV", "Movieclips", "Aaj Tak", "HYBE Labels",
-      "Taylor Swift", "Dude Perfect", "Wave Music", "Badabun", "T-Series Bhakti Sagar"
+      "MrBeast", "T-Series", "Cocomelon", "SET India", "Vlad and Niki",
+      "Stokes Twins", "Kids Diana Show", "KIMPRO", "Like Nastya", "Zee Music Company",
+      "Alejo Igoa", "WWE", "PewDiePie", "Goldmines", "Sony SAB",
+      "BLACKPINK", "Alan's Universe", "ChuChu TV", "Zee TV", "A4",
+      "Topper Guild", "KL Bro Biju Rithvik", "Pinkfong Baby Shark", "BangtanTV", "Zam Zam Brothers",
+      "Toys and Colors", "Colors TV", "T-Series Bhakti Sagar", "Tips Official", "HYBE Labels"
     ),
     aliases: {
       "MrBeast": ["mr beast"],
-      "BangtanTV": ["bts"],
+      "BangtanTV": ["bts", "bangtan tv"],
     },
   },
   {
@@ -409,17 +409,18 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     q: "Most-followed Instagram accounts",
     basis: "By followers, approximate",
     items: L(
-      "Instagram", ["Cristiano Ronaldo", "CR7"], "Lionel Messi", "Selena Gomez", "Kylie Jenner",
-      ["Dwayne Johnson", "The Rock"], "Ariana Grande", "Kim Kardashian", "Beyoncé", "Khloé Kardashian",
-      "Justin Bieber", "Kendall Jenner", "Nike", "Taylor Swift", "Virat Kohli",
-      "Jennifer Lopez", "Nicki Minaj", "Neymar", "National Geographic", "Kourtney Kardashian",
-      "Miley Cyrus", "Katy Perry", "Zendaya", "Kevin Hart", "Cardi B",
-      "Real Madrid", "FC Barcelona", "Demi Lovato", "Rihanna", "Drake"
+      "Instagram", ["Cristiano Ronaldo", "CR7"], "Lionel Messi", "Selena Gomez", ["Dwayne Johnson", "The Rock"],
+      "Kylie Jenner", "Ariana Grande", "Kim Kardashian", "Beyoncé", "Khloé Kardashian",
+      "Nike", "Justin Bieber", "Kendall Jenner", "Taylor Swift", "Virat Kohli",
+      "National Geographic", "Jennifer Lopez", "Neymar", "Kourtney Kardashian", "Miley Cyrus",
+      "Katy Perry", "Real Madrid", "Zendaya", "Kevin Hart", "Cardi B",
+      ["LeBron James", "King James"], "Demi Lovato", "Rihanna", "FC Barcelona", "Chris Brown"
     ),
     aliases: {
       "Cristiano Ronaldo": ["ronaldo", "cr7"],
       "Lionel Messi": ["messi"],
       "Dwayne Johnson": ["the rock"],
+      "LeBron James": ["lebron", "king james"],
     },
   },
   {
@@ -444,14 +445,14 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
     id: "companies",
     cat: "Business",
     q: "Largest companies by market value",
-    basis: "By market cap, approximate",
+    basis: "By market cap, late 2025 (approx)",
     items: L(
-      "Apple", "Microsoft", "Nvidia", ["Alphabet", "Google"], "Amazon",
-      ["Saudi Aramco", "Aramco"], ["Meta", "Facebook"], "Berkshire Hathaway", ["TSMC", "Taiwan Semiconductor"], "Eli Lilly",
-      "Broadcom", "Tesla", "Walmart", "JPMorgan Chase", "Visa",
-      "Tencent", "Mastercard", "Exxon Mobil", "Oracle", "Costco",
-      "Johnson & Johnson", "Home Depot", "Procter & Gamble", "Netflix", "Bank of America",
-      "AbbVie", "Samsung", "Coca-Cola", "Chevron", "ASML"
+      "Nvidia", "Apple", ["Alphabet", "Google"], "Microsoft", "Amazon",
+      ["TSMC", "Taiwan Semiconductor"], "Broadcom", ["Saudi Aramco", "Aramco"], ["Meta", "Facebook"], "Tesla",
+      "Samsung", "Berkshire Hathaway", "Eli Lilly", "Micron Technology", "Walmart",
+      "SK Hynix", "JPMorgan Chase", ["AMD", "Advanced Micro Devices"], "ASML", "Exxon Mobil",
+      "Visa", "Oracle", "Johnson & Johnson", "Tencent", "Intel",
+      "Cisco", "Mastercard", "Costco", "Caterpillar", "AbbVie"
     ),
     aliases: {
       "Alphabet": ["google"],
@@ -459,20 +460,21 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
       "Saudi Aramco": ["aramco"],
       "TSMC": ["taiwan semiconductor"],
       "JPMorgan Chase": ["jpmorgan", "jp morgan"],
+      "AMD": ["advanced micro devices"],
     },
   },
   {
     id: "olympics",
     cat: "Sports",
     q: "Most Olympic gold medals by country",
-    basis: "Summer Olympics, all-time",
+    basis: "Summer Olympic golds, all-time (through 2024)",
     items: L(
-      ["United States", "USA"], ["Soviet Union", "USSR"], "Germany", ["Great Britain", "UK"], "China",
-      "France", "Italy", "Hungary", "East Germany", "Sweden",
-      "Australia", "Japan", "Russia", "Finland", "Netherlands",
-      "Romania", "South Korea", "Cuba", "Norway", "Poland",
-      "Canada", "Switzerland", "Denmark", "Bulgaria", "Czechoslovakia",
-      "Spain", "Brazil", "Kenya", "Jamaica", "New Zealand"
+      ["United States", "USA"], ["Soviet Union", "USSR"], "China", ["Great Britain", "UK"], "France",
+      "Italy", "Germany", "Hungary", "Japan", "Australia",
+      "East Germany", "Sweden", "Russia", "Netherlands", "South Korea",
+      "Finland", "Romania", "Cuba", "Poland", "Canada",
+      "Bulgaria", "Czechoslovakia", "Spain", "Switzerland", "Denmark",
+      "Brazil", "Norway", "Kenya", "Jamaica", "New Zealand"
     ),
     aliases: {
       "United States": ["usa", "us", "america"],
