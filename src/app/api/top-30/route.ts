@@ -17,7 +17,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const SearchResultSchema = Top30ModelResultSchema;
-const providerSchema = z.enum(["auto", "gemini", "openai"]);
+const providerSchema = z.enum(["auto", "gemini", "openai", "openrouter"]);
 type SearchProvider = z.infer<typeof providerSchema>;
 
 function getErrorMessage(error: unknown): string {
@@ -35,6 +35,10 @@ function resolveProvider(): SearchProvider {
 
   if (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) {
     return "gemini";
+  }
+
+  if (process.env.OPENROUTER_API_KEY) {
+    return "openrouter";
   }
 
   if (process.env.OPENAI_API_KEY) {
@@ -193,6 +197,49 @@ async function searchWithOpenAI(question: string, now: string): Promise<Top30Res
   });
 }
 
+async function searchWithOpenRouter(question: string, now: string): Promise<Top30Result> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY is not configured. Add it to your environment variables (locally: .env.local; on Vercel: project Settings → Environment Variables).");
+  }
+
+  const client = new OpenAI({
+    apiKey,
+    baseURL: "https://openrouter.ai/api/v1",
+    defaultHeaders: {
+      "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://game-of-30.vercel.app",
+      "X-Title": "Game of 30",
+    },
+  });
+
+  // OpenRouter is OpenAI-compatible. Append ":online" to enable live web search.
+  const model = process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash:online";
+  const response = await client.chat.completions.create({
+    model,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You create casual trivia rankings for a party game. Use current web evidence, return only the requested JSON shape, keep names concise, and include sources used.",
+      },
+      {
+        role: "user",
+        content: createPrompt(question, now),
+      },
+    ],
+    response_format: { type: "json_object" },
+    temperature: 0.2,
+  });
+
+  const text = response.choices[0]?.message?.content ?? undefined;
+  const parsed = SearchResultSchema.parse(parseJsonFromModelText(text));
+  return normalizeTop30Result({
+    ...parsed,
+    question,
+    generatedAt: parsed.generatedAt || now,
+  });
+}
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = Top30RequestSchema.safeParse(body);
@@ -211,7 +258,9 @@ export async function POST(request: Request) {
     const normalized =
       provider === "gemini"
         ? await searchWithGemini(parsed.data.question, now)
-        : await searchWithOpenAI(parsed.data.question, now);
+        : provider === "openrouter"
+          ? await searchWithOpenRouter(parsed.data.question, now)
+          : await searchWithOpenAI(parsed.data.question, now);
 
     if (normalized.items.length === 0) {
       return NextResponse.json({ error: "No ranked items were found for that question." }, { status: 502 });
@@ -233,8 +282,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (getErrorMessage(error).includes("_API_KEY is missing")) {
-      return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+    const message = getErrorMessage(error);
+    if (message.includes("_API_KEY is missing") || message.includes("_API_KEY is not configured")) {
+      return NextResponse.json({ error: message }, { status: 500 });
     }
 
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 502 });

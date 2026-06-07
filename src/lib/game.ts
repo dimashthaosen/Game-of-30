@@ -1,25 +1,25 @@
-import type { Top30Result } from "@/lib/top30";
+import type { QuestionItem } from "@/lib/questions";
 
-export const STORAGE_KEY = "game-of-30:v1";
+export const STORAGE_KEY = "game-of-30:v2";
 
 export type Player = {
   id: string;
   name: string;
 };
 
-export type RoundScore = {
+export type PlayerResult = {
   playerId: string;
+  guess: string;
+  rank: number | null;
   points: number;
 };
 
 export type GameRound = {
   id: string;
   question: string;
-  title: string;
-  rankingBasis: string;
+  basis: string;
   createdAt: string;
-  scores: RoundScore[];
-  result: Top30Result | null;
+  results: PlayerResult[];
 };
 
 export type GameState = {
@@ -27,35 +27,25 @@ export type GameState = {
   rounds: GameRound[];
 };
 
-export const emptyGameState: GameState = {
-  players: [],
-  rounds: [],
-};
+export const emptyGameState: GameState = { players: [], rounds: [] };
 
 export function createId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function createPlayer(name: string): Player {
-  return {
-    id: createId("player"),
-    name: name.trim() || "Player",
-  };
-}
-
 export function addPlayer(state: GameState, name: string): GameState {
   return {
     ...state,
-    players: [...state.players, createPlayer(name)],
+    players: [...state.players, { id: createId("p"), name: name.trim() || "Player" }],
   };
 }
 
 export function removePlayer(state: GameState, playerId: string): GameState {
   return {
-    players: state.players.filter((player) => player.id !== playerId),
-    rounds: state.rounds.map((round) => ({
-      ...round,
-      scores: round.scores.filter((score) => score.playerId !== playerId),
+    players: state.players.filter((p) => p.id !== playerId),
+    rounds: state.rounds.map((r) => ({
+      ...r,
+      results: r.results.filter((x) => x.playerId !== playerId),
     })),
   };
 }
@@ -63,64 +53,75 @@ export function removePlayer(state: GameState, playerId: string): GameState {
 export function renamePlayer(state: GameState, playerId: string, name: string): GameState {
   return {
     ...state,
-    players: state.players.map((player) =>
-      player.id === playerId ? { ...player, name: name.trim() || "Player" } : player,
+    players: state.players.map((p) =>
+      p.id === playerId ? { ...p, name: name.trim() || p.name } : p
     ),
   };
-}
-
-export function normalizePoints(value: string | number): number {
-  const numberValue = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(numberValue) || numberValue < 0) {
-    return 0;
-  }
-  return Math.floor(numberValue);
 }
 
 export function calculateTotals(state: GameState): Record<string, number> {
   return state.players.reduce<Record<string, number>>((totals, player) => {
     totals[player.id] = state.rounds.reduce((sum, round) => {
-      const score = round.scores.find((item) => item.playerId === player.id);
-      return sum + (score?.points ?? 0);
+      const result = round.results.find((r) => r.playerId === player.id);
+      return sum + (result?.points ?? 0);
     }, 0);
     return totals;
   }, {});
 }
 
-export function createRound(result: Top30Result, scores: RoundScore[]): GameRound {
-  return {
-    id: createId("round"),
-    question: result.question,
-    title: result.title,
-    rankingBasis: result.rankingBasis,
-    createdAt: new Date().toISOString(),
-    scores,
-    result,
-  };
+function norm(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\b(the|a|an|of)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-export function addRound(state: GameState, result: Top30Result, pointsByPlayerId: Record<string, number>): GameState {
-  const scores = state.players.map((player) => ({
-    playerId: player.id,
-    points: normalizePoints(pointsByPlayerId[player.id] ?? 0),
-  }));
+export function matchGuess(
+  items: QuestionItem[],
+  aliases: Record<string, string[]> | undefined,
+  guess: string
+): QuestionItem | null {
+  const g = norm(guess);
+  if (!g) return null;
+  for (const item of items) {
+    const cands = [item.name, ...(aliases?.[item.name] ?? [])].map(norm);
+    if (cands.some((c) => c && c === g)) return item;
+  }
+  if (g.length >= 4) {
+    for (const item of items) {
+      const cands = [item.name, ...(aliases?.[item.name] ?? [])].map(norm);
+      if (cands.some((c) => c && (c.includes(g) || g.includes(c)))) return item;
+    }
+  }
+  return null;
+}
 
-  return {
-    ...state,
-    rounds: [createRound(result, scores), ...state.rounds],
+export function addRound(
+  state: GameState,
+  question: string,
+  basis: string,
+  results: PlayerResult[]
+): GameState {
+  const round: GameRound = {
+    id: createId("round"),
+    question,
+    basis,
+    createdAt: new Date().toISOString(),
+    results,
   };
+  return { ...state, rounds: [round, ...state.rounds] };
 }
 
 export function parseStoredGameState(value: string | null): GameState {
-  if (!value) {
-    return emptyGameState;
-  }
-
+  if (!value) return emptyGameState;
   try {
     const parsed = JSON.parse(value) as GameState;
-    if (!Array.isArray(parsed.players) || !Array.isArray(parsed.rounds)) {
-      return emptyGameState;
-    }
+    if (!Array.isArray(parsed.players) || !Array.isArray(parsed.rounds)) return emptyGameState;
     return parsed;
   } catch {
     return emptyGameState;

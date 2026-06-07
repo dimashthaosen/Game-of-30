@@ -7,3 +7,5 @@ playwright-report/
 test-results/
 dist/
 *.tsbuildinfo
+.DS_Store
+Top 30 Design/

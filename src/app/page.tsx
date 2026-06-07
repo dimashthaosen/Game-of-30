@@ -1,73 +1,767 @@
 "use client";
 
-import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Eraser,
-  ExternalLink,
-  HelpCircle,
-  Loader2,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-  Trophy,
-  UserPlus,
-  X,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   addPlayer,
   addRound,
   calculateTotals,
   emptyGameState,
+  matchGuess,
   parseStoredGameState,
   removePlayer,
   renamePlayer,
   STORAGE_KEY,
   type GameState,
+  type PlayerResult,
 } from "@/lib/game";
-import type { Top30Item, Top30Result } from "@/lib/top30";
+import { CURATED_QUESTIONS, type QuestionItem } from "@/lib/questions";
+import type { Top30Result } from "@/lib/top30";
 
-type ApiState = "idle" | "loading" | "success" | "error";
+type AppView = "home" | "question" | "guess" | "reveal" | "results";
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+type ActiveQuestion = {
+  id: string;
+  cat: string;
+  q: string;
+  basis: string;
+  items: QuestionItem[];
+  aliases?: Record<string, string[]>;
+};
+
+// ===== ICONS =====
+
+type IconProps = { size?: number; className?: string };
+
+function Svg({ size = 20, children, className }: IconProps & { children: React.ReactNode }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {children}
+    </svg>
+  );
 }
 
-function blankScores(players: GameState["players"]): Record<string, number> {
-  return players.reduce<Record<string, number>>((scores, player) => {
-    scores[player.id] = 0;
-    return scores;
-  }, {});
+const IcoHelp = (p: IconProps) => (
+  <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M9.2 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.6 2.2-2.6 3.7" /><circle cx="12" cy="17.4" r="0.6" fill="currentColor" stroke="none" /></Svg>
+);
+const IcoClose = (p: IconProps) => <Svg {...p}><path d="M6 6l12 12M18 6L6 18" /></Svg>;
+const IcoBack = (p: IconProps) => <Svg {...p}><path d="M15 5l-7 7 7 7" /></Svg>;
+const IcoPlus = (p: IconProps) => <Svg {...p}><path d="M12 5v14M5 12h14" /></Svg>;
+const IcoHistory = (p: IconProps) => (
+  <Svg {...p}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3 4v3.5h3.5" /><path d="M12 8v4l2.5 1.5" /></Svg>
+);
+const IcoChevron = (p: IconProps) => <Svg {...p}><path d="M9 6l6 6-6 6" /></Svg>;
+const IcoCrown = ({ size = 18 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 7.5l3.6 3 3.4-5.2a1.2 1.2 0 0 1 2 0l3.4 5.2 3.6-3c.9-.7 2.1.2 1.7 1.2l-2 7.1a1 1 0 0 1-1 .7H5.3a1 1 0 0 1-1-.7l-2-7.1c-.4-1 .8-1.9 1.7-1.2z" />
+  </svg>
+);
+const IcoTrophy = (p: IconProps) => (
+  <Svg {...p}><path d="M7 4h10v3a5 5 0 0 1-10 0V4z" /><path d="M7 5H4.5a2.5 2.5 0 0 0 3 3M17 5h2.5a2.5 2.5 0 0 1-3 3" /><path d="M12 12v3M9 19h6M10 19c0-1.5.5-2 2-2s2 .5 2 2" /></Svg>
+);
+const IcoLock = (p: IconProps) => (
+  <Svg {...p}><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></Svg>
+);
+const IcoEye = (p: IconProps) => (
+  <Svg {...p}><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" /><circle cx="12" cy="12" r="2.6" /></Svg>
+);
+const IcoTarget = (p: IconProps) => (
+  <Svg {...p}><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none" /></Svg>
+);
+const IcoLoader = ({ size = 16, className }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className={className}>
+    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+  </svg>
+);
+
+// ===== AVATAR =====
+
+const AV_COLORS = ["#f4c430", "#8ec6b0", "#f0a868", "#a8c6f0", "#e69bbf", "#c3b1e1", "#b8d98a", "#f08c8c"];
+
+function avatarColor(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = ((h * 31) + id.charCodeAt(i)) >>> 0;
+  return AV_COLORS[h % AV_COLORS.length];
 }
 
-function normalizeEditedItems(items: Top30Item[]): Top30Item[] {
-  return items.map((item, index) => ({
-    ...item,
-    rank: index + 1,
-    name: item.name.trim() || `Item ${index + 1}`,
-    sourceUrls: item.sourceUrls ?? [],
-  }));
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+function Avatar({ player, size = 30 }: { player: { id: string; name: string }; size?: number }) {
+  return (
+    <span className="avatar" style={{ width: size, height: size, background: avatarColor(player.id), fontSize: size * 0.38 }}>
+      {initials(player.name)}
+    </span>
+  );
+}
+
+// ===== SHARED UI =====
+
+function TopBar({ onBack, onHelp, onHistory }: { onBack?: () => void; onHelp?: () => void; onHistory?: () => void }) {
+  return (
+    <header className="topbar">
+      {onBack ? (
+        <button className="iconbtn" onClick={onBack} aria-label="Back"><IcoBack /></button>
+      ) : (
+        <div className="topbar-title">
+          <span>Game of</span>
+          <span className="num">30</span>
+        </div>
+      )}
+      <div className="spacer" />
+      <div className="topbar-actions">
+        {onHistory && <button className="iconbtn" onClick={onHistory} aria-label="History"><IcoHistory /></button>}
+        {onHelp && <button className="iconbtn" onClick={onHelp} aria-label="How to play"><IcoHelp /></button>}
+      </div>
+    </header>
+  );
+}
+
+function Sheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+  return (
+    <div className="backdrop" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="sheet-grip" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const RULES: [string, React.ReactNode][] = [
+  ["Pick a list", <>Choose a ranked question everyone gets, like <b>most populous countries</b> or <b>biggest movie franchises</b>.</>],
+  ["Everyone guesses one answer", <>Pass the phone. Each player secretly names <b>one</b> thing they think is on the Top&nbsp;30.</>],
+  ["Rank equals points", <>Your guess scores <b>its rank number</b>. Guess #1 and you get just <b>1 point</b>. Guess #28 and you bank <b>28</b>.</>],
+  ["Reward the deep cuts", <>The game is won on the long tail — name the surprising thing that <b>barely</b> makes the list.</>],
+  ["Miss the list, score zero", <>A guess not in the Top&nbsp;30 is worth <b>0</b>. Highest total after all rounds <b>wins</b>.</>],
+];
+
+function RulesSheet({ onClose }: { onClose: () => void }) {
+  return (
+    <Sheet onClose={onClose}>
+      <div className="row" style={{ justifyContent: "space-between", marginBottom: 6 }}>
+        <div>
+          <div className="eyebrow">How to play</div>
+          <h2 className="display" style={{ marginTop: 4 }}>The rules</h2>
+        </div>
+        <button className="iconbtn" onClick={onClose} aria-label="Close"><IcoClose /></button>
+      </div>
+      <div>
+        {RULES.map(([title, body], i) => (
+          <div className="rules-step" key={i}>
+            <div className="n">{i + 1}</div>
+            <div>
+              <b style={{ fontSize: "1.02rem" }}>{title}</b>
+              <p>{body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="btn primary block" style={{ marginTop: 18 }} onClick={onClose}>Got it</button>
+    </Sheet>
+  );
+}
+
+function HistorySheet({ game, totals, onClose }: { game: GameState; totals: Record<string, number>; onClose: () => void }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const nameOf = (id: string) => game.players.find((p) => p.id === id)?.name ?? "Removed";
+
+  return (
+    <Sheet onClose={onClose}>
+      <div className="row" style={{ justifyContent: "space-between", marginBottom: 10 }}>
+        <div>
+          <div className="eyebrow">Game log</div>
+          <h2 className="display" style={{ marginTop: 4 }}>Round history</h2>
+        </div>
+        <button className="iconbtn" onClick={onClose} aria-label="Close"><IcoClose /></button>
+      </div>
+      {game.rounds.length === 0 ? (
+        <div className="empty">No rounds played yet.</div>
+      ) : (
+        <div className="stack" style={{ gap: 10 }}>
+          {game.rounds.map((round, i) => {
+            const isOpen = open === round.id;
+            const ranked = [...round.results].sort((a, b) => b.points - a.points);
+            return (
+              <div className="card" key={round.id} style={{ padding: 0, overflow: "hidden" }}>
+                <button
+                  className="row"
+                  style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: 14, textAlign: "left" }}
+                  onClick={() => setOpen(isOpen ? null : round.id)}
+                >
+                  <span>
+                    <span className="eyebrow" style={{ color: "var(--ink-3)" }}>Round {game.rounds.length - i}</span>
+                    <span style={{ display: "block", fontWeight: 600, marginTop: 3, lineHeight: 1.2 }}>{round.question}</span>
+                  </span>
+                  <span style={{ color: "var(--ink-3)", transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 160ms ease" }}>
+                    <IcoChevron />
+                  </span>
+                </button>
+                {isOpen && (
+                  <div style={{ borderTop: "1px solid var(--line)", padding: 14 }}>
+                    <div className="score-list">
+                      {ranked.map((r) => (
+                        <div className="score-row" key={r.playerId} style={{ padding: "8px 2px" }}>
+                          <span className="place" />
+                          <span className="who">
+                            {nameOf(r.playerId)}
+                            {r.guess
+                              ? <span className="muted" style={{ fontWeight: 400, fontSize: "0.85rem" }}>· "{r.guess}"</span>
+                              : null}
+                          </span>
+                          <span className="pts tnum" style={{ fontSize: "1.2rem" }}>+{r.points}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+// ===== HOME SCREEN =====
+
+function HomeScreen({
+  game, totals, standings, onStart, onAddPlayer, onRemovePlayer, onRenamePlayer, onHelp, onHistory,
+}: {
+  game: GameState;
+  totals: Record<string, number>;
+  standings: GameState["players"];
+  onStart: () => void;
+  onAddPlayer: (name: string) => void;
+  onRemovePlayer: (id: string) => void;
+  onRenamePlayer: (id: string, name: string) => void;
+  onHelp: () => void;
+  onHistory: (() => void) | null;
+}) {
+  const [name, setName] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const hasRounds = game.rounds.length > 0;
+
+  const add = () => {
+    const v = name.trim();
+    if (!v) return;
+    onAddPlayer(v);
+    setName("");
+  };
+
+  return (
+    <>
+      <TopBar onHelp={onHelp} onHistory={hasRounds && onHistory ? onHistory : undefined} />
+      <div className="screen screen-enter">
+        <div style={{ marginBottom: 18 }}>
+          <div className="eyebrow">A local party game of nerve</div>
+          <h1 className="display" style={{ margin: "8px 0 10px" }}>Guess the<br />deep cuts.</h1>
+          <p className="lede" style={{ maxWidth: 360 }}>
+            Name what <em>barely</em> makes the Top&nbsp;30. The lower the rank, the bigger the points.
+          </p>
+        </div>
+
+        {hasRounds && (
+          <div className="card" style={{ padding: "8px 16px 6px", marginBottom: 18 }}>
+            <div className="row" style={{ justifyContent: "space-between", padding: "10px 0 6px" }}>
+              <span className="eyebrow">Standings</span>
+              <span className="eyebrow tnum">
+                {game.rounds.length} {game.rounds.length === 1 ? "round" : "rounds"}
+              </span>
+            </div>
+            <div className="score-list">
+              {standings.map((p, i) => (
+                <div className={`score-row${i === 0 ? " leader" : ""}`} key={p.id}>
+                  <span className="place">
+                    {i === 0 ? <span className="crown"><IcoCrown size={18} /></span> : i + 1}
+                  </span>
+                  <span className="who"><Avatar player={p} size={28} />{p.name}</span>
+                  <span className="pts tnum">{totals[p.id] ?? 0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="row" style={{ marginBottom: 8 }}>
+          <span className="eyebrow">Players</span>
+          <div className="spacer" />
+          {game.players.length > 0 && <span className="eyebrow tnum">{game.players.length}</span>}
+        </div>
+
+        {game.players.length === 0 ? (
+          <div className="empty" style={{ marginBottom: 14 }}>Add at least one player to start.</div>
+        ) : (
+          <div className="chips" style={{ marginBottom: 14 }}>
+            {game.players.map((p) => (
+              <span className="chip" key={p.id}>
+                <span className="avatar" style={{ width: 22, height: 22, background: avatarColor(p.id), fontSize: 9 }}>
+                  {initials(p.name)}
+                </span>
+                {editing === p.id ? (
+                  <input
+                    autoFocus
+                    defaultValue={p.name}
+                    style={{ border: "none", background: "transparent", width: 90, fontWeight: 600, outline: "none" }}
+                    onBlur={(e) => { onRenamePlayer(p.id, e.currentTarget.value); setEditing(null); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  />
+                ) : (
+                  <span onClick={() => setEditing(p.id)} style={{ cursor: "text" }}>{p.name}</span>
+                )}
+                <button className="x" onClick={() => onRemovePlayer(p.id)} aria-label={`Remove ${p.name}`}>
+                  <IcoClose size={14} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="row" style={{ gap: 8, marginBottom: 24 }}>
+          <input
+            className="field"
+            placeholder="Add a player…"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") add(); }}
+          />
+          <button className="btn ghost sm" style={{ height: 52, flex: "none", paddingInline: 16 }} onClick={add} aria-label="Add player">
+            <IcoPlus />
+          </button>
+        </div>
+
+        <div className="mt-auto stack" style={{ gap: 10 }}>
+          <button className="btn primary block" disabled={game.players.length === 0} onClick={onStart}>
+            <IcoTarget size={20} /> Start a round
+          </button>
+          <button className="btn ghost block" onClick={onHelp}>How to play</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ===== QUESTION SCREEN =====
+
+function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
+  roundNo: number;
+  onPick: (q: ActiveQuestion) => void;
+  onBack: () => void;
+  onHelp: () => void;
+}) {
+  const [custom, setCustom] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const pickRandom = () => {
+    const q = CURATED_QUESTIONS[Math.floor(Math.random() * CURATED_QUESTIONS.length)];
+    onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases });
+  };
+
+  const submitCustom = async () => {
+    const trimmed = custom.trim();
+    if (trimmed.length < 3 || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/top-30", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: trimmed }),
+      });
+      let data: Partial<Top30Result> & { error?: string };
+      try {
+        data = await response.json() as Partial<Top30Result> & { error?: string };
+      } catch {
+        throw new Error("The server returned an unexpected response. Please try again.");
+      }
+      if (!response.ok) throw new Error(data.error ?? "Could not generate a list. Try rephrasing.");
+      const result = data as Top30Result;
+      onPick({
+        id: `ai_${Date.now()}`,
+        cat: "AI Generated",
+        q: result.question,
+        basis: result.rankingBasis,
+        items: result.items.map((item) => ({
+          rank: item.rank,
+          name: item.name,
+          note: item.value ?? item.note ?? undefined,
+        })),
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <TopBar onBack={onBack} onHelp={onHelp} />
+      <div className="screen screen-enter">
+        <div style={{ marginBottom: 16 }}>
+          <div className="eyebrow">Round {roundNo}</div>
+          <h2 className="display" style={{ margin: "8px 0 6px" }}>Choose a list</h2>
+          <p className="lede">Everyone will guess one answer to the same question.</p>
+        </div>
+
+        <div className="stack" style={{ gap: 10, marginBottom: 18 }}>
+          {CURATED_QUESTIONS.map((q) => (
+            <button
+              key={q.id}
+              className="card selectable"
+              onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
+              style={{ textAlign: "left", display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center", gap: 12 }}
+            >
+              <span>
+                <span className="eyebrow" style={{ color: "var(--ink-3)" }}>{q.cat}</span>
+                <span style={{ display: "block", fontWeight: 600, fontSize: "1.08rem", marginTop: 3, lineHeight: 1.2 }}>{q.q}</span>
+              </span>
+              <span style={{ color: "var(--ink-3)" }}><IcoChevron /></span>
+            </button>
+          ))}
+        </div>
+
+        <div className="row" style={{ gap: 10, alignItems: "center", margin: "2px 0 16px" }}>
+          <hr className="divider" style={{ flex: 1 }} />
+          <span className="eyebrow">or</span>
+          <hr className="divider" style={{ flex: 1 }} />
+        </div>
+
+        <div className="card" style={{ padding: 14, marginBottom: 16 }}>
+          <span className="eyebrow" style={{ color: "var(--ink-3)" }}>Ask the AI</span>
+          <div className="row" style={{ gap: 8, marginTop: 8 }}>
+            <input
+              className="field"
+              placeholder="e.g. Best-selling video games of all time"
+              value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") submitCustom(); }}
+              disabled={loading}
+            />
+          </div>
+          {error && <p style={{ margin: "8px 2px 0", fontSize: "0.85rem", color: "var(--bad)" }}>{error}</p>}
+          <p style={{ margin: "8px 2px 0", fontSize: "0.82rem", color: "var(--ink-3)" }}>
+            The AI generates a live Top 30 list from the web.
+          </p>
+          <button
+            className="btn ghost block sm"
+            style={{ marginTop: 10 }}
+            disabled={custom.trim().length < 3 || loading}
+            onClick={submitCustom}
+          >
+            {loading ? <><IcoLoader className="spin" /> Generating…</> : "Generate this list"}
+          </button>
+        </div>
+
+        <button className="btn ghost block" onClick={pickRandom}>Surprise me</button>
+      </div>
+    </>
+  );
+}
+
+// ===== GUESS SCREEN =====
+
+function GuessScreen({ question, players, onComplete, onBack }: {
+  question: ActiveQuestion;
+  players: GameState["players"];
+  onComplete: (guesses: Record<string, string>) => void;
+  onBack: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState<"handoff" | "input">("handoff");
+  const [guess, setGuess] = useState("");
+  const [guesses, setGuesses] = useState<Record<string, string>>({});
+  const player = players[idx];
+
+  const lockIn = (val?: string) => {
+    const g = (val ?? guess).trim();
+    const next = { ...guesses, [player.id]: g };
+    setGuesses(next);
+    setGuess("");
+    if (idx + 1 < players.length) {
+      setIdx(idx + 1);
+      setPhase("handoff");
+    } else {
+      onComplete(next);
+    }
+  };
+
+  return (
+    <>
+      <TopBar onBack={onBack} />
+      <div className="screen screen-enter" style={{ justifyContent: "space-between" }}>
+        <div className="center" style={{ paddingTop: 6 }}>
+          <div className="eyebrow">{question.cat}</div>
+          <p className="display" style={{ fontSize: "1.25rem", margin: "8px 0 0", lineHeight: 1.2 }}>{question.q}</p>
+        </div>
+
+        {phase === "handoff" ? (
+          <div className="center stack" style={{ alignItems: "center", gap: 18, padding: "10px 0" }}>
+            <Avatar player={player} size={84} />
+            <div>
+              <div className="eyebrow">Pass the phone to</div>
+              <h2 className="display" style={{ fontSize: "2.4rem", margin: "6px 0 0" }}>{player.name}</h2>
+            </div>
+            <p className="muted" style={{ maxWidth: 280 }}>Keep your answer secret. Tap when you're holding the phone.</p>
+            <button className="btn dark" onClick={() => setPhase("input")}>
+              <IcoEye size={18} /> I'm {player.name}
+            </button>
+          </div>
+        ) : (
+          <div className="stack" style={{ gap: 14, padding: "4px 0" }}>
+            <div className="center">
+              <Avatar player={player} size={48} />
+              <h2 className="display" style={{ fontSize: "1.4rem", margin: "8px 0 0" }}>{player.name}, your guess</h2>
+              <p className="muted" style={{ fontSize: "0.9rem", marginTop: 4 }}>Aim deep — the rarer it ranks, the more you score.</p>
+            </div>
+            <input
+              className="field big"
+              autoFocus
+              placeholder="One answer…"
+              value={guess}
+              onChange={(e) => setGuess(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && guess.trim()) lockIn(); }}
+            />
+            <button className="btn primary block" disabled={!guess.trim()} onClick={() => lockIn()}>
+              <IcoLock size={18} /> Lock it in
+            </button>
+            <button className="btn ghost block sm" onClick={() => lockIn("")}>Skip — no guess</button>
+          </div>
+        )}
+
+        <div className="dots" style={{ paddingTop: 6 }}>
+          {players.map((p, i) => (
+            <span key={p.id} className={`dot${i < idx ? " done" : i === idx ? " now" : ""}`} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ===== REVEAL SCREEN =====
+
+function RevealScreen({ question, players, guesses, onDone, onBack }: {
+  question: ActiveQuestion;
+  players: GameState["players"];
+  guesses: Record<string, string>;
+  onDone: (results: PlayerResult[]) => void;
+  onBack: () => void;
+}) {
+  const [started, setStarted] = useState(false);
+  const [shown, setShown] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const order = question.items;
+  const done = shown >= order.length;
+
+  useEffect(() => {
+    if (!started || done) return;
+    const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 260 : 165);
+    return () => clearTimeout(t);
+  }, [started, shown, done]);
+
+  useEffect(() => {
+    if (scrollRef.current && started) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [shown, started]);
+
+  const hitsByRank = useMemo(() => {
+    const m: Record<number, Array<{ player: GameState["players"][0] }>> = {};
+    players.forEach((p) => {
+      const g = (guesses[p.id] ?? "").trim();
+      if (!g) return;
+      const item = matchGuess(question.items, question.aliases, g);
+      if (item) (m[item.rank] = m[item.rank] ?? []).push({ player: p });
+    });
+    return m;
+  }, [players, guesses, question]);
+
+  const commitResults = () => {
+    const results: PlayerResult[] = players.map((p) => {
+      const guess = (guesses[p.id] ?? "").trim();
+      const item = guess ? matchGuess(question.items, question.aliases, guess) : null;
+      return { playerId: p.id, guess, rank: item?.rank ?? null, points: item?.rank ?? 0 };
+    });
+    onDone(results);
+  };
+
+  const sortedVisible = [...order.slice(0, shown)].sort((a, b) => a.rank - b.rank);
+
+  return (
+    <>
+      <TopBar onBack={onBack} />
+      <div className="screen" style={{ paddingBottom: 0 }}>
+        <div style={{ marginBottom: 8 }}>
+          <div className="eyebrow">{question.cat} · The reveal</div>
+          <h2 className="display" style={{ fontSize: "1.5rem", margin: "6px 0 2px", lineHeight: 1.12 }}>{question.q}</h2>
+          <p className="muted" style={{ fontSize: "0.85rem" }}>{question.basis}</p>
+        </div>
+
+        {!started ? (
+          <div className="center stack mt-auto" style={{ alignItems: "center", gap: 16, justifyContent: "center", flex: 1 }}>
+            <span style={{ color: "var(--accent)" }}><IcoTarget size={56} /></span>
+            <div>
+              <div className="eyebrow">All {players.length} {players.length === 1 ? "guess is" : "guesses are"} in</div>
+              <h2 className="display" style={{ fontSize: "2rem", margin: "6px 0 0" }}>Ready?</h2>
+            </div>
+            <p className="muted" style={{ maxWidth: 280 }}>Watch the Top 30 count up from #1.</p>
+            <button className="btn primary" onClick={() => setStarted(true)}>Reveal the Top 30</button>
+          </div>
+        ) : (
+          <>
+            <div className="row" style={{ justifyContent: "space-between", margin: "4px 0 8px" }}>
+              <span className="eyebrow tnum">{Math.min(shown, order.length)} / {order.length}</span>
+              {!done && (
+                <button className="btn ghost sm" style={{ height: 34 }} onClick={() => setShown(order.length)}>
+                  Reveal all
+                </button>
+              )}
+            </div>
+            <div className="reveal-list" ref={scrollRef} style={{ flex: 1, overflowY: "auto", margin: "0 -6px" }}>
+              {sortedVisible.map((item) => {
+                const hits = hitsByRank[item.rank] ?? [];
+                return (
+                  <div className={`reveal-row pop-in${hits.length ? " hit" : ""}`} key={item.rank}>
+                    <span className="rk">{item.rank}</span>
+                    <span className="nm">
+                      {item.name}
+                      {item.note && <small>{item.note}</small>}
+                    </span>
+                    {hits.length > 0 && (
+                      <span className="guess-tags">
+                        {hits.map((h) => (
+                          <span className="guess-tag" key={h.player.id}>
+                            {initials(h.player.name)} +{item.rank}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ padding: "12px 0 4px", flexShrink: 0 }}>
+              <button className="btn primary block" disabled={!done} onClick={commitResults}>
+                {done ? "See the scores" : "Revealing…"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ===== RESULTS SCREEN =====
+
+function ResultsScreen({ question, results, roundNo, totals, standings, players, onNext, onHome }: {
+  question: ActiveQuestion;
+  results: PlayerResult[];
+  roundNo: number;
+  totals: Record<string, number>;
+  standings: GameState["players"];
+  players: GameState["players"];
+  onNext: () => void;
+  onHome: () => void;
+}) {
+  const ranked = [...results].sort((a, b) => b.points - a.points);
+  const top = ranked[0];
+  const tieCount = ranked.filter((r) => r.points === top?.points && top.points > 0).length;
+  const winner = top && top.points > 0 && tieCount === 1 ? top : null;
+  const nameOf = (id: string) => players.find((p) => p.id === id)?.name ?? "?";
+
+  return (
+    <>
+      <TopBar />
+      <div className="screen screen-enter">
+        <div className="center" style={{ marginBottom: 16 }}>
+          <div className="eyebrow">Round {roundNo} · scored</div>
+          {winner ? (
+            <>
+              <div style={{ color: "var(--accent)", marginTop: 8 }}><IcoCrown size={40} /></div>
+              <h2 className="display" style={{ fontSize: "2rem", margin: "4px 0 0" }}>{nameOf(winner.playerId)} takes it</h2>
+              <p className="muted" style={{ marginTop: 4 }}>
+                "{winner.guess || "—"}" {winner.rank ? `ranked #${winner.rank}` : ""} for{" "}
+                <b style={{ color: "var(--ink)" }}>{winner.points} points</b>
+              </p>
+            </>
+          ) : (
+            <>
+              <div style={{ color: "var(--ink-3)", marginTop: 8 }}><IcoTrophy size={36} /></div>
+              <h2 className="display" style={{ fontSize: "1.7rem", margin: "4px 0 0" }}>
+                {tieCount > 1 ? "It's a tie!" : "Round scored"}
+              </h2>
+            </>
+          )}
+        </div>
+
+        <span className="eyebrow">This round</span>
+        <div className="card" style={{ padding: "4px 14px", margin: "8px 0 18px" }}>
+          {ranked.map((r) => (
+            <div className="score-row" key={r.playerId}>
+              <span className="place">
+                <Avatar player={{ id: r.playerId, name: nameOf(r.playerId) }} size={28} />
+              </span>
+              <span className="who" style={{ flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+                <b style={{ fontWeight: 600 }}>{nameOf(r.playerId)}</b>
+                <span style={{ fontSize: "0.86rem", color: "var(--ink-2)" }}>
+                  {r.guess ? `"${r.guess}"` : "no guess"}
+                  {r.rank ? ` · #${r.rank}` : r.guess && !r.rank ? " · not on the list" : ""}
+                </span>
+              </span>
+              <span className="pts tnum" style={{ color: r.points > 0 ? "var(--ink)" : "var(--ink-3)" }}>
+                +{r.points}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <span className="eyebrow">Standings</span>
+        <div className="card" style={{ padding: "4px 14px", margin: "8px 0 0" }}>
+          {standings.map((p, i) => (
+            <div className={`score-row${i === 0 ? " leader" : ""}`} key={p.id}>
+              <span className="place">
+                {i === 0 ? <span className="crown"><IcoCrown size={16} /></span> : i + 1}
+              </span>
+              <span className="who"><Avatar player={p} size={26} />{p.name}</span>
+              <span className="pts tnum" style={{ fontSize: "1.25rem" }}>{totals[p.id] ?? 0}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto stack" style={{ gap: 10, paddingTop: 22 }}>
+          <button className="btn primary block" onClick={onNext}><IcoTarget size={18} /> Next round</button>
+          <button className="btn ghost block" onClick={onHome}>Back to home</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ===== ROOT =====
 
 export default function Home() {
   const [game, setGame] = useState<GameState>(emptyGameState);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [newPlayerName, setNewPlayerName] = useState("");
-  const [question, setQuestion] = useState("");
-  const [apiState, setApiState] = useState<ApiState>("idle");
-  const [error, setError] = useState("");
-  const [currentResult, setCurrentResult] = useState<Top30Result | null>(null);
-  const [scores, setScores] = useState<Record<string, number>>({});
-  const [expandedRoundId, setExpandedRoundId] = useState<string | null>(null);
-  const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const [view, setView] = useState<AppView>("home");
+  const [showRules, setShowRules] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [activeQuestion, setActiveQuestion] = useState<ActiveQuestion | null>(null);
+  const [guesses, setGuesses] = useState<Record<string, string>>({});
+  const [roundResults, setRoundResults] = useState<PlayerResult[] | null>(null);
 
   useEffect(() => {
     setGame(parseStoredGameState(window.localStorage.getItem(STORAGE_KEY)));
@@ -75,419 +769,81 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (hasLoaded) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
-    }
+    if (hasLoaded) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
   }, [game, hasLoaded]);
 
-  useEffect(() => {
-    setScores((previous) => ({
-      ...blankScores(game.players),
-      ...previous,
-    }));
-  }, [game.players]);
-
-  useEffect(() => {
-    if (!isRulesOpen) {
-      return;
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsRulesOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [isRulesOpen]);
-
   const totals = useMemo(() => calculateTotals(game), [game]);
-  const sortedPlayers = useMemo(
+  const standings = useMemo(
     () => [...game.players].sort((a, b) => (totals[b.id] ?? 0) - (totals[a.id] ?? 0)),
-    [game.players, totals],
+    [game.players, totals]
   );
+  const roundNo = game.rounds.length + 1;
 
-  async function generateTop30() {
-    const trimmed = question.trim();
-    if (!trimmed) {
-      setError("Enter a question first.");
-      setApiState("error");
-      return;
-    }
+  const startRound = () => { setActiveQuestion(null); setGuesses({}); setRoundResults(null); setView("question"); };
+  const goHome = () => { setView("home"); setActiveQuestion(null); setGuesses({}); setRoundResults(null); };
 
-    setApiState("loading");
-    setError("");
-    setCurrentResult(null);
-
-    try {
-      const response = await fetch("/api/top-30", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
-      });
-
-      let data: Top30Result | { error?: string };
-      try {
-        data = (await response.json()) as Top30Result | { error?: string };
-      } catch {
-        throw new Error("The server returned an unexpected response. Please try again.");
-      }
-
-      if (!response.ok) {
-        throw new Error("error" in data && data.error ? data.error : "The ranked list could not be generated.");
-      }
-
-      setCurrentResult(data as Top30Result);
-      setScores(blankScores(game.players));
-      setApiState("success");
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "The ranked list could not be generated.");
-      setApiState("error");
-    }
-  }
-
-  function addNamedPlayer() {
-    setGame((state) => addPlayer(state, newPlayerName || `Player ${state.players.length + 1}`));
-    setNewPlayerName("");
-  }
-
-  function saveRound() {
-    if (!currentResult) {
-      return;
-    }
-
-    const cleanedResult = {
-      ...currentResult,
-      items: normalizeEditedItems(currentResult.items),
-    };
-
-    setGame((state) => addRound(state, cleanedResult, scores));
-    setCurrentResult(null);
-    setQuestion("");
-    setScores(blankScores(game.players));
-    setApiState("idle");
-  }
-
-  function resetGame() {
-    setGame(emptyGameState);
-    setCurrentResult(null);
-    setScores({});
-    setQuestion("");
-    setApiState("idle");
-    setError("");
-    window.localStorage.removeItem(STORAGE_KEY);
-  }
-
-  function updateCurrentItem(rank: number, field: keyof Pick<Top30Item, "name" | "value" | "note">, value: string) {
-    setCurrentResult((result) => {
-      if (!result) {
-        return result;
-      }
-
-      return {
-        ...result,
-        items: result.items.map((item) => (item.rank === rank ? { ...item, [field]: value } : item)),
-      };
-    });
-  }
+  const commitResults = (results: PlayerResult[]) => {
+    if (!activeQuestion) return;
+    setRoundResults(results);
+    setGame((prev) => addRound(prev, activeQuestion.q, activeQuestion.basis, results));
+    setView("results");
+  };
 
   return (
-    <main className="app-shell">
-      <section className="top-bar">
-        <div>
-          <p className="eyebrow">Local party mode</p>
-          <h1>Game of 30</h1>
-        </div>
-        <div className="top-actions">
-          <button className="icon-button" type="button" onClick={() => setIsRulesOpen(true)} aria-label="Game rules" title="Game rules">
-            <HelpCircle aria-hidden="true" size={18} />
-          </button>
-          <button className="icon-button danger" type="button" onClick={resetGame} aria-label="Reset game" title="Reset game">
-            <RefreshCw aria-hidden="true" size={18} />
-          </button>
-        </div>
-      </section>
-
-      {isRulesOpen ? (
-        <div className="rules-backdrop" role="presentation" onClick={() => setIsRulesOpen(false)}>
-          <section
-            aria-labelledby="rules-title"
-            aria-modal="true"
-            className="rules-dialog"
-            role="dialog"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="rules-header">
-              <div>
-                <p className="eyebrow">How to play</p>
-                <h2 id="rules-title">Game rules</h2>
-              </div>
-              <button className="icon-button ghost" type="button" onClick={() => setIsRulesOpen(false)} aria-label="Close rules" title="Close rules">
-                <X aria-hidden="true" size={18} />
-              </button>
-            </div>
-
-            <ol className="rules-list">
-              <li>Pick a ranked question everyone can understand, like most populous countries or biggest movie franchises.</li>
-              <li>Everyone makes one guess before the answer list is revealed.</li>
-              <li>The app generates a Top 30 list, and you can edit the list if the casual search needs cleanup.</li>
-              <li>Rank number equals points: rank 1 gives 1 point, rank 25 gives 25 points.</li>
-              <li>If a guess is not in the Top 30, the usual score is 0.</li>
-              <li>Enter points manually for each player and save the round. Highest total wins.</li>
-            </ol>
-          </section>
-        </div>
-      ) : null}
-
-      <section className="layout-grid">
-        <aside className="scoreboard panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Players</p>
-              <h2>Scoreboard</h2>
-            </div>
-            <Trophy className="panel-icon" aria-hidden="true" size={22} />
-          </div>
-
-          <div className="add-player">
-            <input
-              aria-label="New player name"
-              placeholder="New player"
-              value={newPlayerName}
-              onChange={(event) => setNewPlayerName(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  addNamedPlayer();
-                }
-              }}
-            />
-            <button className="icon-button" type="button" onClick={addNamedPlayer} aria-label="Add player" title="Add player">
-              <UserPlus aria-hidden="true" size={18} />
-            </button>
-          </div>
-
-          {game.players.length === 0 ? (
-            <div className="empty-state">Add players before saving scores.</div>
-          ) : (
-            <ol className="player-list">
-              {sortedPlayers.map((player, index) => (
-                <li key={player.id} className="player-row">
-                  <span className="place">{index + 1}</span>
-                  <input
-                    aria-label={`Name for ${player.name}`}
-                    value={player.name}
-                    onChange={(event) => setGame((state) => renamePlayer(state, player.id, event.target.value))}
-                  />
-                  <strong>{totals[player.id] ?? 0}</strong>
-                  <button
-                    className="icon-button ghost"
-                    type="button"
-                    onClick={() => setGame((state) => removePlayer(state, player.id))}
-                    aria-label={`Remove ${player.name}`}
-                    title="Remove player"
-                  >
-                    <Trash2 aria-hidden="true" size={16} />
-                  </button>
-                </li>
-              ))}
-            </ol>
-          )}
-        </aside>
-
-        <section className="game-column">
-          <section className="question-panel panel">
-            <div className="panel-heading">
-              <div>
-                <p className="eyebrow">Round setup</p>
-                <h2>Ask a ranked question</h2>
-              </div>
-              <button
-                className="icon-button"
-                type="button"
-                onClick={() => setQuestion("")}
-                aria-label="Clear question"
-                title="Clear question"
-              >
-                <Eraser aria-hidden="true" size={18} />
-              </button>
-            </div>
-
-            <div className="question-row">
-              <textarea
-                aria-label="Round question"
-                placeholder="Which countries have the largest populations?"
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-              />
-              <button className="primary-button" type="button" onClick={generateTop30} disabled={apiState === "loading"}>
-                {apiState === "loading" ? <Loader2 aria-hidden="true" className="spin" size={18} /> : <Search aria-hidden="true" size={18} />}
-                Generate
-              </button>
-            </div>
-
-            {apiState === "error" ? <div className="alert">{error}</div> : null}
-          </section>
-
-          {currentResult ? (
-            <section className="result-grid">
-              <div className="ranking-panel panel">
-                <div className="panel-heading">
-                  <div>
-                    <p className="eyebrow">Reveal</p>
-                    <h2>{currentResult.title}</h2>
-                    <p className="muted">{currentResult.rankingBasis}</p>
-                  </div>
-                </div>
-
-                {currentResult.warnings.length > 0 ? (
-                  <div className="warning-list">
-                    {currentResult.warnings.map((warning) => (
-                      <span key={warning}>{warning}</span>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="ranking-list">
-                  {currentResult.items.map((item) => (
-                    <div key={item.rank} className="ranking-row">
-                      <span className="rank">{item.rank}</span>
-                      <input
-                        aria-label={`Rank ${item.rank} name`}
-                        value={item.name}
-                        onChange={(event) => updateCurrentItem(item.rank, "name", event.target.value)}
-                      />
-                      <input
-                        aria-label={`Rank ${item.rank} value`}
-                        placeholder="Value"
-                        value={item.value ?? ""}
-                        onChange={(event) => updateCurrentItem(item.rank, "value", event.target.value)}
-                      />
-                      <input
-                        aria-label={`Rank ${item.rank} note`}
-                        placeholder="Note"
-                        value={item.note ?? ""}
-                        onChange={(event) => updateCurrentItem(item.rank, "note", event.target.value)}
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {currentResult.sources.length > 0 ? (
-                  <div className="sources">
-                    {currentResult.sources.map((source) => (
-                      <a key={source.url} href={source.url} target="_blank" rel="noreferrer">
-                        <ExternalLink aria-hidden="true" size={14} />
-                        {source.title}
-                      </a>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="panel score-entry">
-                <div className="panel-heading">
-                  <div>
-                    <p className="eyebrow">Manual scoring</p>
-                    <h2>Enter points</h2>
-                  </div>
-                </div>
-
-                {game.players.length === 0 ? (
-                  <div className="empty-state">Add players to save this round.</div>
-                ) : (
-                  <div className="score-inputs">
-                    {game.players.map((player) => (
-                      <label key={player.id}>
-                        <span>{player.name}</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={scores[player.id] ?? 0}
-                          onChange={(event) =>
-                            setScores((previous) => ({
-                              ...previous,
-                              [player.id]: Math.max(0, Math.floor(Number(event.target.value) || 0)),
-                            }))
-                          }
-                        />
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                <button className="primary-button save-button" type="button" onClick={saveRound} disabled={game.players.length === 0}>
-                  <Check aria-hidden="true" size={18} />
-                  Save round
-                </button>
-              </div>
-            </section>
-          ) : (
-            <section className="panel idle-board">
-              <Plus aria-hidden="true" size={24} />
-              <span>Generate a list to reveal the round table.</span>
-            </section>
-          )}
-        </section>
-      </section>
-
-      <section className="history panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">Saved rounds</p>
-            <h2>Round history</h2>
-          </div>
-        </div>
-
-        {game.rounds.length === 0 ? (
-          <div className="empty-state">No saved rounds yet.</div>
-        ) : (
-          <div className="round-list">
-            {game.rounds.map((round) => (
-              <article key={round.id} className="round-card">
-                <button
-                  type="button"
-                  className="round-summary"
-                  onClick={() => setExpandedRoundId((current) => (current === round.id ? null : round.id))}
-                >
-                  <span>
-                    <strong>{round.title}</strong>
-                    <small>{formatDate(round.createdAt)}</small>
-                  </span>
-                  {expandedRoundId === round.id ? <ChevronUp aria-hidden="true" size={18} /> : <ChevronDown aria-hidden="true" size={18} />}
-                </button>
-
-                {expandedRoundId === round.id ? (
-                  <div className="round-detail">
-                    <p>{round.question}</p>
-                    <div className="round-scores">
-                      {round.scores.map((score) => {
-                        const player = game.players.find((item) => item.id === score.playerId);
-                        return (
-                          <span key={score.playerId}>
-                            {player?.name ?? "Removed player"}: <strong>{score.points}</strong>
-                          </span>
-                        );
-                      })}
-                    </div>
-                    {round.result ? (
-                      <ol>
-                        {round.result.items.slice(0, 10).map((item) => (
-                          <li key={item.rank}>
-                            {item.name}
-                            {item.value ? <span> · {item.value}</span> : null}
-                          </li>
-                        ))}
-                      </ol>
-                    ) : null}
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
+    <div className="stage">
+      <div className="app">
+        {view === "home" && (
+          <HomeScreen
+            game={game} totals={totals} standings={standings}
+            onStart={startRound}
+            onAddPlayer={(name) => setGame((g) => addPlayer(g, name))}
+            onRemovePlayer={(id) => setGame((g) => removePlayer(g, id))}
+            onRenamePlayer={(id, name) => setGame((g) => renamePlayer(g, id, name))}
+            onHelp={() => setShowRules(true)}
+            onHistory={game.rounds.length > 0 ? () => setShowHistory(true) : null}
+          />
         )}
-      </section>
-    </main>
+        {view === "question" && (
+          <QuestionScreen
+            roundNo={roundNo}
+            onPick={(q) => { setActiveQuestion(q); setView("guess"); }}
+            onBack={goHome}
+            onHelp={() => setShowRules(true)}
+          />
+        )}
+        {view === "guess" && activeQuestion && (
+          <GuessScreen
+            question={activeQuestion}
+            players={game.players}
+            onComplete={(g) => { setGuesses(g); setView("reveal"); }}
+            onBack={() => setView("question")}
+          />
+        )}
+        {view === "reveal" && activeQuestion && (
+          <RevealScreen
+            question={activeQuestion}
+            players={game.players}
+            guesses={guesses}
+            onDone={commitResults}
+            onBack={() => setView("guess")}
+          />
+        )}
+        {view === "results" && activeQuestion && roundResults && (
+          <ResultsScreen
+            question={activeQuestion}
+            results={roundResults}
+            roundNo={game.rounds.length}
+            totals={totals}
+            standings={standings}
+            players={game.players}
+            onNext={startRound}
+            onHome={goHome}
+          />
+        )}
+
+        {showRules && <RulesSheet onClose={() => setShowRules(false)} />}
+        {showHistory && <HistorySheet game={game} totals={totals} onClose={() => setShowHistory(false)} />}
+      </div>
+    </div>
   );
 }

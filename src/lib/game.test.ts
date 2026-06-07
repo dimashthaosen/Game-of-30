@@ -1,91 +1,79 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   addPlayer,
   addRound,
   calculateTotals,
   emptyGameState,
-  normalizePoints,
+  matchGuess,
   parseStoredGameState,
   removePlayer,
   renamePlayer,
-  type GameState,
 } from "@/lib/game";
-import type { Top30Result } from "@/lib/top30";
 
-const sampleResult: Top30Result = {
-  question: "Largest countries by population?",
-  title: "Largest Countries by Population",
-  rankingBasis: "Ranked by estimated population.",
-  generatedAt: "2026-06-07T00:00:00.000Z",
-  items: [
-    { rank: 1, name: "India", value: "1.4B", sourceUrls: [] },
-    { rank: 2, name: "China", value: "1.4B", sourceUrls: [] },
-  ],
-  sources: [{ title: "Example", url: "https://example.com" }],
-  warnings: [],
-};
-
-describe("game helpers", () => {
-  it("adds, renames, and removes players without keeping stale scores", () => {
-    vi.setSystemTime(new Date("2026-06-07T00:00:00.000Z"));
-
+describe("player management", () => {
+  it("adds, renames, and removes players, cleaning up their results", () => {
     let state = addPlayer(emptyGameState, "Dimash");
     state = addPlayer(state, "Alex");
+    const [dimash, alex] = state.players;
 
-    const dimash = state.players[0];
-    const alex = state.players[1];
     state = renamePlayer(state, alex.id, "Asha");
-    state = addRound(state, sampleResult, { [dimash.id]: 25, [alex.id]: 1 });
+    state = addRound(state, "Q1", "Basis", [
+      { playerId: dimash.id, guess: "India", rank: 1, points: 1 },
+      { playerId: alex.id, guess: "China", rank: 2, points: 2 },
+    ]);
     state = removePlayer(state, dimash.id);
 
     expect(state.players).toEqual([{ id: alex.id, name: "Asha" }]);
-    expect(state.rounds[0].scores).toEqual([{ playerId: alex.id, points: 1 }]);
+    expect(state.rounds[0].results).toEqual([
+      { playerId: alex.id, guess: "China", rank: 2, points: 2 },
+    ]);
+  });
+});
+
+describe("scoring", () => {
+  it("calculates totals from round results", () => {
+    let state = addPlayer(emptyGameState, "Dimash");
+    state = addPlayer(state, "Alex");
+    const [p1, p2] = state.players;
+
+    state = addRound(state, "Q1", "Basis", [
+      { playerId: p1.id, guess: "A", rank: 25, points: 25 },
+      { playerId: p2.id, guess: "B", rank: 1, points: 1 },
+    ]);
+    state = addRound(state, "Q2", "Basis", [
+      { playerId: p1.id, guess: "", rank: null, points: 0 },
+      { playerId: p2.id, guess: "C", rank: 30, points: 30 },
+    ]);
+
+    expect(calculateTotals(state)).toEqual({ [p1.id]: 25, [p2.id]: 31 });
+  });
+});
+
+describe("matchGuess", () => {
+  const items = [
+    { rank: 1, name: "India" },
+    { rank: 2, name: "China" },
+    { rank: 3, name: "United States" },
+  ];
+  const aliases = { "United States": ["usa", "us", "america"] };
+
+  it("matches exact names case-insensitively", () => {
+    expect(matchGuess(items, aliases, "india")?.rank).toBe(1);
+    expect(matchGuess(items, aliases, "CHINA")?.rank).toBe(2);
   });
 
-  it("calculates totals from saved manual scores", () => {
-    const state: GameState = {
-      players: [
-        { id: "p1", name: "Dimash" },
-        { id: "p2", name: "Alex" },
-      ],
-      rounds: [
-        {
-          id: "r1",
-          question: "Q1",
-          title: "Round 1",
-          rankingBasis: "Basis",
-          createdAt: "2026-06-07T00:00:00.000Z",
-          result: null,
-          scores: [
-            { playerId: "p1", points: 25 },
-            { playerId: "p2", points: 1 },
-          ],
-        },
-        {
-          id: "r2",
-          question: "Q2",
-          title: "Round 2",
-          rankingBasis: "Basis",
-          createdAt: "2026-06-07T00:00:00.000Z",
-          result: null,
-          scores: [
-            { playerId: "p1", points: 0 },
-            { playerId: "p2", points: 30 },
-          ],
-        },
-      ],
-    };
-
-    expect(calculateTotals(state)).toEqual({ p1: 25, p2: 31 });
+  it("matches aliases", () => {
+    expect(matchGuess(items, aliases, "USA")?.rank).toBe(3);
+    expect(matchGuess(items, aliases, "america")?.rank).toBe(3);
   });
 
-  it("normalizes point entry to non-negative whole numbers", () => {
-    expect(normalizePoints("25.9")).toBe(25);
-    expect(normalizePoints("-4")).toBe(0);
-    expect(normalizePoints("nope")).toBe(0);
+  it("returns null for no match", () => {
+    expect(matchGuess(items, aliases, "Germany")).toBeNull();
   });
+});
 
-  it("falls back to an empty state when stored data is missing or invalid", () => {
+describe("parseStoredGameState", () => {
+  it("falls back to empty state when data is missing or invalid", () => {
     expect(parseStoredGameState(null)).toEqual(emptyGameState);
     expect(parseStoredGameState("{")).toEqual(emptyGameState);
     expect(parseStoredGameState(JSON.stringify({ players: [], rounds: [] }))).toEqual(emptyGameState);
