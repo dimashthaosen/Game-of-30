@@ -412,7 +412,7 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
   const [custom, setCustom] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [openTheme, setOpenTheme] = useState<string | null>(CURATED_THEME_GROUPS[0]?.name ?? null);
+  const [openTheme, setOpenTheme] = useState<string | null>(null);
 
   const pickRandom = () => {
     const q = CURATED_QUESTIONS[Math.floor(Math.random() * CURATED_QUESTIONS.length)];
