@@ -90,6 +90,33 @@ function norm(s: string): string {
     .trim();
 }
 
+/** Levenshtein edit distance between two strings. */
+export function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  let curr = new Array<number>(b.length + 1);
+
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+/** How many typos to forgive, scaled to the length of the guess. */
+function fuzzyThreshold(len: number): number {
+  if (len <= 4) return 1;
+  if (len <= 7) return 2;
+  return 3;
+}
+
 export function matchGuess(
   items: QuestionItem[],
   aliases: Record<string, string[]> | undefined,
@@ -97,17 +124,45 @@ export function matchGuess(
 ): QuestionItem | null {
   const g = norm(guess);
   if (!g) return null;
+
+  const candsFor = (item: QuestionItem) =>
+    [item.name, ...(aliases?.[item.name] ?? [])].map(norm).filter(Boolean);
+
+  // 1) exact (normalized) match against names + aliases
   for (const item of items) {
-    const cands = [item.name, ...(aliases?.[item.name] ?? [])].map(norm);
-    if (cands.some((c) => c && c === g)) return item;
+    if (candsFor(item).some((c) => c === g)) return item;
   }
-  if (g.length >= 4) {
-    for (const item of items) {
-      const cands = [item.name, ...(aliases?.[item.name] ?? [])].map(norm);
-      if (cands.some((c) => c && (c.includes(g) || g.includes(c)))) return item;
+
+  if (g.length < 4) return null;
+
+  // 2) substring containment (e.g. "united states of america" ⊃ "united states")
+  for (const item of items) {
+    if (candsFor(item).some((c) => c.includes(g) || g.includes(c))) return item;
+  }
+
+  // 3) fuzzy: forgive small typos by edit distance.
+  //    Take the single closest answer, and reject ambiguous ties between
+  //    different items so a typo never silently lands on the wrong rank.
+  const threshold = fuzzyThreshold(g.length);
+  let best: { item: QuestionItem; dist: number } | null = null;
+  let ambiguous = false;
+
+  for (const item of items) {
+    for (const c of candsFor(item)) {
+      // skip very short aliases (e.g. "up", "cr7") — too easy to false-match
+      if (c.length < 4) continue;
+      const d = editDistance(g, c);
+      if (d > threshold) continue;
+      if (!best || d < best.dist) {
+        best = { item, dist: d };
+        ambiguous = false;
+      } else if (d === best.dist && item !== best.item) {
+        ambiguous = true;
+      }
     }
   }
-  return null;
+
+  return best && !ambiguous ? best.item : null;
 }
 
 export function addRound(

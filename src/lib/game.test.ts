@@ -74,6 +74,28 @@ describe("matchGuess", () => {
   it("returns null for no match", () => {
     expect(matchGuess(items, aliases, "Germany")).toBeNull();
   });
+
+  it("forgives small typos via fuzzy matching", () => {
+    const countries = [
+      { rank: 1, name: "Indonesia" },
+      { rank: 2, name: "Philippines" },
+      { rank: 3, name: "Maharashtra" },
+      { rank: 4, name: "Switzerland" },
+    ];
+    expect(matchGuess(countries, undefined, "indonesa")?.rank).toBe(1);
+    expect(matchGuess(countries, undefined, "phillipines")?.rank).toBe(2);
+    expect(matchGuess(countries, undefined, "maharastra")?.rank).toBe(3);
+    expect(matchGuess(countries, undefined, "switzerlnd")?.rank).toBe(4);
+  });
+
+  it("does not fuzzy-match a genuinely different answer", () => {
+    const countries = [
+      { rank: 1, name: "India" },
+      { rank: 2, name: "Indonesia" },
+    ];
+    // "Iceland" is not a near-typo of either, so it should miss
+    expect(matchGuess(countries, undefined, "Iceland")).toBeNull();
+  });
 });
 
 describe("game target & win condition", () => {
