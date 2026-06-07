@@ -267,7 +267,7 @@ function HomeScreen({
           <div className="eyebrow">A local party game</div>
           <h1 className="display" style={{ margin: "8px 0 10px" }}>Aim for<br />the bottom.</h1>
           <p className="lede" style={{ maxWidth: 360 }}>
-            Guess a real answer that <em>barely</em> cracks the Top&nbsp;30. The lower it ranks, the more you score.
+            Name something that <em>barely</em> cracks the Top&nbsp;30. The lower it ranks, the more you score.
           </p>
         </div>
 
