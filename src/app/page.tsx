@@ -19,7 +19,7 @@ import {
   type GameTarget,
   type PlayerResult,
 } from "@/lib/game";
-import { CURATED_QUESTIONS, type QuestionItem } from "@/lib/questions";
+import { CURATED_QUESTIONS, CURATED_THEME_GROUPS, type QuestionItem } from "@/lib/questions";
 import type { Top30Result } from "@/lib/top30";
 
 type AppView = "home" | "question" | "guess" | "reveal" | "results" | "finale";
@@ -412,6 +412,7 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
   const [custom, setCustom] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [openTheme, setOpenTheme] = useState<string | null>(CURATED_THEME_GROUPS[0]?.name ?? null);
 
   const pickRandom = () => {
     const q = CURATED_QUESTIONS[Math.floor(Math.random() * CURATED_QUESTIONS.length)];
@@ -466,20 +467,45 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
         </div>
 
         <div className="stack" style={{ gap: 10, marginBottom: 18 }}>
-          {CURATED_QUESTIONS.map((q) => (
-            <button
-              key={q.id}
-              className="card selectable"
-              onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
-              style={{ textAlign: "left", display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center", gap: 12 }}
-            >
-              <span>
-                <span className="eyebrow" style={{ color: "var(--ink-3)" }}>{q.cat}</span>
-                <span style={{ display: "block", fontWeight: 600, fontSize: "1.08rem", marginTop: 3, lineHeight: 1.2 }}>{q.q}</span>
-              </span>
-              <span style={{ color: "var(--ink-3)" }}><IcoChevron /></span>
-            </button>
-          ))}
+          {CURATED_THEME_GROUPS.map((theme) => {
+            const open = openTheme === theme.name;
+            return (
+              <div className="card" key={theme.name} style={{ padding: 0, overflow: "hidden" }}>
+                <button
+                  type="button"
+                  className="row"
+                  style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: 16, textAlign: "left" }}
+                  onClick={() => setOpenTheme(open ? null : theme.name)}
+                >
+                  <span>
+                    <span style={{ display: "block", fontWeight: 700, fontSize: "1.08rem", lineHeight: 1.2 }}>{theme.name}</span>
+                    <span className="eyebrow" style={{ color: "var(--ink-3)", display: "block", marginTop: 4, letterSpacing: "0.04em", textTransform: "none" }}>
+                      {theme.blurb} · {theme.questions.length} lists
+                    </span>
+                  </span>
+                  <span style={{ color: "var(--ink-3)", transform: open ? "rotate(90deg)" : "none", transition: "transform 160ms ease", flex: "none" }}>
+                    <IcoChevron />
+                  </span>
+                </button>
+                {open && (
+                  <div className="stack" style={{ borderTop: "1px solid var(--line)" }}>
+                    {theme.questions.map((q) => (
+                      <button
+                        key={q.id}
+                        type="button"
+                        className="row pick-row"
+                        onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
+                        style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: "13px 16px", textAlign: "left", borderTop: "1px solid var(--line)" }}
+                      >
+                        <span style={{ fontWeight: 600, fontSize: "1rem", lineHeight: 1.25 }}>{q.q}</span>
+                        <span style={{ color: "var(--ink-3)", flex: "none" }}><IcoChevron /></span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="row" style={{ gap: 10, alignItems: "center", margin: "2px 0 16px" }}>

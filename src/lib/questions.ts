@@ -310,4 +310,220 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
       "Pushpa: The Rise": ["pushpa"],
     },
   },
+  {
+    id: "in-area",
+    cat: "India",
+    q: "Largest states in India by area",
+    basis: "By area",
+    items: L(
+      "Rajasthan", ["Madhya Pradesh", "MP"], "Maharashtra", ["Uttar Pradesh", "UP"], "Gujarat",
+      "Karnataka", ["Andhra Pradesh", "AP"], "Odisha", "Chhattisgarh", "Tamil Nadu",
+      "Telangana", "Bihar", ["West Bengal", "Bengal"], "Arunachal Pradesh", "Jharkhand",
+      "Assam", "Himachal Pradesh", "Uttarakhand", "Punjab", "Haryana",
+      "Kerala", "Meghalaya", "Manipur", "Mizoram", "Nagaland",
+      "Tripura", "Sikkim", "Goa", ["Delhi", "NCT"], ["Jammu & Kashmir", "J&K"]
+    ),
+    aliases: {
+      "Uttar Pradesh": ["up"],
+      "Madhya Pradesh": ["mp"],
+      "Andhra Pradesh": ["ap"],
+      "Tamil Nadu": ["tn"],
+      "West Bengal": ["bengal", "wb"],
+      "Jammu & Kashmir": ["kashmir", "jk"],
+    },
+  },
+  {
+    id: "mountains",
+    cat: "Nature",
+    q: "Tallest mountains in the world",
+    basis: "By height above sea level",
+    items: L(
+      ["Everest", "Nepal/China"], "K2", "Kangchenjunga", "Lhotse", "Makalu",
+      "Cho Oyu", "Dhaulagiri", "Manaslu", "Nanga Parbat", "Annapurna",
+      "Gasherbrum I", "Broad Peak", "Gasherbrum II", "Shishapangma", "Gyachung Kang",
+      "Annapurna II", "Gasherbrum III", "Gasherbrum IV", "Himalchuli", "Distaghil Sar",
+      "Ngadi Chuli", "Nuptse", "Khunyang Chhish", "Masherbrum", "Nanda Devi",
+      "Chomo Lonzo", "Batura Sar", "Kanjut Sar", "Rakaposhi", "Namcha Barwa"
+    ),
+    aliases: {
+      "Everest": ["mount everest", "sagarmatha", "chomolungma"],
+    },
+  },
+  {
+    id: "rivers",
+    cat: "Nature",
+    q: "Longest rivers in the world",
+    basis: "By length, approximate",
+    items: L(
+      "Nile", "Amazon", "Yangtze", "Mississippi", "Yenisei",
+      ["Yellow River", "Huang He"], "Ob", "Paraná", "Congo", "Amur",
+      "Lena", "Mekong", "Mackenzie", "Niger", "Brahmaputra",
+      "Murray", "Volga", "Indus", "Madeira", "Yukon",
+      "São Francisco", "Syr Darya", "Salween", "Saint Lawrence", "Rio Grande",
+      "Danube", "Euphrates", "Ganges", "Zambezi", "Amu Darya"
+    ),
+    aliases: {
+      "Yellow River": ["huang he"],
+      "Saint Lawrence": ["st lawrence"],
+      "Ganges": ["ganga"],
+    },
+  },
+  {
+    id: "animated",
+    cat: "Movies",
+    q: "Highest-grossing animated films",
+    basis: "By worldwide box office",
+    items: L(
+      "Inside Out 2", ["The Super Mario Bros. Movie", "Mario Movie"], "Frozen II", "Incredibles 2", "Minions",
+      "Toy Story 4", "Toy Story 3", "Frozen", "Despicable Me 3", "Finding Dory",
+      "Zootopia", "Despicable Me 2", "Moana 2", "Inside Out", "Coco",
+      "Shrek 2", "Minions: The Rise of Gru", "Sing", "The Secret Life of Pets", "Despicable Me",
+      "Kung Fu Panda 2", "Finding Nemo", "Shrek the Third", "Shrek Forever After", "Up",
+      "Madagascar 3", "Monsters University", "How to Train Your Dragon 2", "Big Hero 6", "Ne Zha 2"
+    ),
+    aliases: {
+      "The Super Mario Bros. Movie": ["mario movie", "super mario movie"],
+    },
+  },
+  {
+    id: "youtube",
+    cat: "Internet",
+    q: "Most-subscribed YouTube channels",
+    basis: "By subscribers, as of 2024",
+    items: L(
+      "MrBeast", "T-Series", "Cocomelon", "SET India", "Kids Diana Show",
+      "Vlad and Niki", "Like Nastya", "PewDiePie", "Zee Music Company", "WWE",
+      "Sony SAB", "5-Minute Crafts", "Goldmines", "Colors TV", "Sony Entertainment Television",
+      "BangtanTV", "Justin Bieber", "Pinkfong", "Marshmello", "El Reino Infantil",
+      "BLACKPINK", "ChuChu TV", "Movieclips", "Aaj Tak", "HYBE Labels",
+      "Taylor Swift", "Dude Perfect", "Wave Music", "Badabun", "T-Series Bhakti Sagar"
+    ),
+    aliases: {
+      "MrBeast": ["mr beast"],
+      "BangtanTV": ["bts"],
+    },
+  },
+  {
+    id: "instagram",
+    cat: "Internet",
+    q: "Most-followed Instagram accounts",
+    basis: "By followers, approximate",
+    items: L(
+      "Instagram", ["Cristiano Ronaldo", "CR7"], "Lionel Messi", "Selena Gomez", "Kylie Jenner",
+      ["Dwayne Johnson", "The Rock"], "Ariana Grande", "Kim Kardashian", "Beyoncé", "Khloé Kardashian",
+      "Justin Bieber", "Kendall Jenner", "Nike", "Taylor Swift", "Virat Kohli",
+      "Jennifer Lopez", "Nicki Minaj", "Neymar", "National Geographic", "Kourtney Kardashian",
+      "Miley Cyrus", "Katy Perry", "Zendaya", "Kevin Hart", "Cardi B",
+      "Real Madrid", "FC Barcelona", "Demi Lovato", "Rihanna", "Drake"
+    ),
+    aliases: {
+      "Cristiano Ronaldo": ["ronaldo", "cr7"],
+      "Lionel Messi": ["messi"],
+      "Dwayne Johnson": ["the rock"],
+    },
+  },
+  {
+    id: "music",
+    cat: "Music",
+    q: "Best-selling music artists",
+    basis: "By record sales, approximate",
+    items: L(
+      ["The Beatles", "Beatles"], "Elvis Presley", "Michael Jackson", "Elton John", "Queen",
+      "Madonna", "Led Zeppelin", "Rihanna", "Pink Floyd", "Eminem",
+      "Taylor Swift", "Mariah Carey", "Whitney Houston", "Drake", "Celine Dion",
+      "AC/DC", "The Rolling Stones", "ABBA", "Garth Brooks", "Adele",
+      "U2", "Billy Joel", "Bruno Mars", "Frank Sinatra", "Barbra Streisand",
+      "Ed Sheeran", "Metallica", "Beyoncé", "Justin Bieber", "Phil Collins"
+    ),
+    aliases: {
+      "The Beatles": ["beatles"],
+      "The Rolling Stones": ["rolling stones"],
+    },
+  },
+  {
+    id: "companies",
+    cat: "Business",
+    q: "Largest companies by market value",
+    basis: "By market cap, approximate",
+    items: L(
+      "Apple", "Microsoft", "Nvidia", ["Alphabet", "Google"], "Amazon",
+      ["Saudi Aramco", "Aramco"], ["Meta", "Facebook"], "Berkshire Hathaway", ["TSMC", "Taiwan Semiconductor"], "Eli Lilly",
+      "Broadcom", "Tesla", "Walmart", "JPMorgan Chase", "Visa",
+      "Tencent", "Mastercard", "Exxon Mobil", "Oracle", "Costco",
+      "Johnson & Johnson", "Home Depot", "Procter & Gamble", "Netflix", "Bank of America",
+      "AbbVie", "Samsung", "Coca-Cola", "Chevron", "ASML"
+    ),
+    aliases: {
+      "Alphabet": ["google"],
+      "Meta": ["facebook"],
+      "Saudi Aramco": ["aramco"],
+      "TSMC": ["taiwan semiconductor"],
+      "JPMorgan Chase": ["jpmorgan", "jp morgan"],
+    },
+  },
+  {
+    id: "olympics",
+    cat: "Sports",
+    q: "Most Olympic gold medals by country",
+    basis: "Summer Olympics, all-time",
+    items: L(
+      ["United States", "USA"], ["Soviet Union", "USSR"], "Germany", ["Great Britain", "UK"], "China",
+      "France", "Italy", "Hungary", "East Germany", "Sweden",
+      "Australia", "Japan", "Russia", "Finland", "Netherlands",
+      "Romania", "South Korea", "Cuba", "Norway", "Poland",
+      "Canada", "Switzerland", "Denmark", "Bulgaria", "Czechoslovakia",
+      "Spain", "Brazil", "Kenya", "Jamaica", "New Zealand"
+    ),
+    aliases: {
+      "United States": ["usa", "us", "america"],
+      "Soviet Union": ["ussr", "soviet"],
+      "Great Britain": ["uk", "britain", "england"],
+      "South Korea": ["korea"],
+    },
+  },
+  {
+    id: "books",
+    cat: "Books",
+    q: "Best-selling books of all time",
+    basis: "By copies sold, approximate",
+    items: L(
+      "Don Quixote", "A Tale of Two Cities", ["The Lord of the Rings", "LOTR"], "The Little Prince", ["Harry Potter and the Philosopher's Stone", "Sorcerer's Stone"],
+      "And Then There Were None", "Dream of the Red Chamber", "The Hobbit", "Alice's Adventures in Wonderland", "The Lion, the Witch and the Wardrobe",
+      "She: A History of Adventure", "The Da Vinci Code", "Think and Grow Rich", "The Catcher in the Rye", "The Alchemist",
+      "Heidi", "To Kill a Mockingbird", "Anne of Green Gables", "Charlotte's Web", "The Name of the Rose",
+      "Fifty Shades of Grey", "Watership Down", "One Hundred Years of Solitude", "Gone with the Wind", "War and Peace",
+      "The Diary of a Young Girl", "Lolita", "Black Beauty", "Angels & Demons", "The Bridges of Madison County"
+    ),
+    aliases: {
+      "The Lord of the Rings": ["lotr", "lord of the rings"],
+      "The Little Prince": ["le petit prince"],
+      "Harry Potter and the Philosopher's Stone": ["harry potter", "philosophers stone", "sorcerers stone"],
+      "The Diary of a Young Girl": ["anne frank", "diary of anne frank"],
+    },
+  },
 ];
+
+export type CuratedTheme = {
+  name: string;
+  blurb: string;
+  ids: string[];
+};
+
+export const CURATED_THEMES: CuratedTheme[] = [
+  { name: "World & Geography", blurb: "Countries, cities, places", ids: ["countries", "area", "cities", "states"] },
+  { name: "Nature & Science", blurb: "Mountains, rivers, elements", ids: ["mountains", "rivers", "elements", "languages"] },
+  { name: "India", blurb: "States, cities, cinema", ids: ["in-states", "in-cities", "in-area", "in-films"] },
+  { name: "Movies", blurb: "Box-office giants", ids: ["franchises", "films", "animated"] },
+  { name: "Pop Culture", blurb: "Games, music, the internet", ids: ["games", "music", "youtube", "instagram"] },
+  { name: "Money & Records", blurb: "Business, sport, books, towers", ids: ["companies", "olympics", "books", "buildings"] },
+];
+
+const QUESTION_BY_ID = new Map(CURATED_QUESTIONS.map((q) => [q.id, q]));
+
+export const CURATED_THEME_GROUPS = CURATED_THEMES.map((theme) => ({
+  name: theme.name,
+  blurb: theme.blurb,
+  questions: theme.ids
+    .map((id) => QUESTION_BY_ID.get(id))
+    .filter((q): q is CuratedQuestion => Boolean(q)),
+}));

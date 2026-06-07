@@ -254,6 +254,9 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
 
 .card.selectable:hover { border-color: var(--ink); }
 
+.pick-row { cursor: pointer; transition: background 120ms ease; }
+.pick-row:hover { background: var(--paper); }
+
 /* ----- Scoreboard ----- */
 .score-list { display: flex; flex-direction: column; }
 
