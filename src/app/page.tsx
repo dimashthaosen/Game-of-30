@@ -521,6 +521,13 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
       width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px`,
     });
 
+    // Lock the inner content to the FINAL size so it is laid out once and never
+    // re-wraps while the panel animates. The panel's overflow:hidden clips it,
+    // so the growing panel simply reveals the already-positioned text instead
+    // of the text reflowing to fit each intermediate width.
+    content.style.width = `${f.width}px`;
+    content.style.height = `${f.height}px`;
+
     if (prefersReduced()) {
       backdrop.style.opacity = "1";
       content.style.opacity = "1";

@@ -19,6 +19,18 @@ const displayFont = Source_Serif_4({
 export const metadata: Metadata = {
   title: "Game of 30",
   description: "A local party game — guess what barely makes the Top 30.",
+  // Enables fullscreen, no-Safari-chrome mode when added to the iOS Home Screen
+  // (Share → Add to Home Screen → launch from the icon).
+  appleWebApp: {
+    capable: true,
+    title: "Game of 30",
+    statusBarStyle: "default",
+  },
+  // Next emits the modern `mobile-web-app-capable`; add the legacy Apple name
+  // too so older iOS versions also launch fullscreen from the Home Screen.
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
