@@ -68,14 +68,20 @@ button { cursor: pointer; background: none; border: none; padding: 0; }
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  min-height: min(880px, calc(100vh - 80px));
+  height: min(880px, calc(100vh - 80px));
   overflow: hidden;
   position: relative;
 }
 
 @media (max-width: 600px) {
   .stage { padding: 0; }
-  .app { border-radius: 0; border-left: 0; border-right: 0; min-height: 100vh; }
+  .app {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    height: 100vh;
+    height: 100dvh;
+  }
 }
 
 /* ----- Top bar ----- */
@@ -135,10 +141,13 @@ button { cursor: pointer; background: none; border: none; padding: 0; }
 /* ----- Screen body ----- */
 .screen {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: 22px 22px 26px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ----- Typography ----- */
@@ -301,7 +310,13 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
 .crown { color: var(--accent); }
 
 /* ----- Reveal list ----- */
-.reveal-list { display: flex; flex-direction: column; }
+.reveal-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
 
 .reveal-row {
   display: grid;
@@ -383,6 +398,8 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   padding: 8px 22px 26px;
   max-height: 86%;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   animation: slideUp 240ms cubic-bezier(.2,.8,.2,1) both;
 }
 
