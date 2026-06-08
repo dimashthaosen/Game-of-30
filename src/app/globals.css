@@ -482,3 +482,153 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   from { transform: translateY(6px); opacity: 0; }
   to   { transform: none; opacity: 1; }
 }
+
+/* ============================================================
+   Theme picker — grid + shared-element floating expand
+   ============================================================ */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: 4px;
+  min-height: 124px;
+  padding: 16px 15px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: transform 140ms cubic-bezier(.2,.9,.25,1.05), border-color 140ms ease, box-shadow 160ms ease;
+}
+
+.theme-card:hover {
+  border-color: var(--ink);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+
+.theme-card:active { transform: translateY(-1px); }
+
+.theme-card-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.14rem;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.theme-card-blurb {
+  flex: 1;
+  margin-top: 3px;
+  font-size: 0.84rem;
+  line-height: 1.32;
+  color: var(--ink-2);
+}
+
+.theme-card-count {
+  margin-top: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.theme-card-count b {
+  font-weight: 800;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  margin-right: 5px;
+  letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-card { transition: border-color 140ms ease; }
+  .theme-card:hover, .theme-card:active { transform: none; }
+}
+
+/* ----- blurred backdrop (scoped to the app shell) ----- */
+.theme-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: rgba(18, 18, 18, 0.42);
+  -webkit-backdrop-filter: blur(7px) saturate(0.92);
+  backdrop-filter: blur(7px) saturate(0.92);
+}
+
+/* ----- focused floating panel (geometry set inline by JS) ----- */
+.theme-focus {
+  position: absolute;
+  z-index: 41;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+  outline: none;
+  will-change: left, top, width, height;
+}
+
+.theme-focus-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.theme-focus-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 16px 13px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.theme-focus-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 10px 14px;
+}
+
+.theme-pick {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 12px;
+  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--line);
+}
+
+.theme-focus-body .theme-pick:last-child { border-bottom: 0; }
+
+.theme-pick-q {
+  display: block;
+  margin-top: 3px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-focus { will-change: auto; }
+}

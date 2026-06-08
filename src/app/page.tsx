@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   addPlayer,
   addRound,
@@ -412,11 +412,24 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
   const [custom, setCustom] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [openTheme, setOpenTheme] = useState<string | null>(null);
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const originRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
+  const finalRef = useRef<{ left: number; top: number; width: number; height: number; radius: number } | null>(null);
+  const lastFocusRef = useRef<HTMLElement | null>(null);
+  const closingRef = useRef(false);
+
+  const prefersReduced = () =>
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const toActive = (q: ActiveQuestion): ActiveQuestion =>
+    ({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases });
 
   const pickRandom = () => {
     const q = CURATED_QUESTIONS[Math.floor(Math.random() * CURATED_QUESTIONS.length)];
-    onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases });
+    onPick(toActive(q));
   };
 
   const submitCustom = async () => {
@@ -456,62 +469,172 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
     }
   };
 
+  // ----- geometry helper -----
+  const rectIn = (el: HTMLElement, shellRect: DOMRect) => {
+    const r = el.getBoundingClientRect();
+    return { left: r.left - shellRect.left, top: r.top - shellRect.top, width: r.width, height: r.height };
+  };
+
+  // ----- open -----
+  const openThemeAt = (idx: number, el: HTMLElement) => {
+    if (openIdx != null) return;
+    const shell = el.closest(".app") as HTMLElement | null;
+    if (!shell) return;
+    originRef.current = rectIn(el, shell.getBoundingClientRect());
+    lastFocusRef.current = el;
+    setOpenIdx(idx);
+  };
+
+  useLayoutEffect(() => {
+    if (openIdx == null) return;
+    const panel = panelRef.current;
+    const backdrop = backdropRef.current;
+    if (!panel || !backdrop) return;
+    const shell = panel.closest(".app") as HTMLElement | null;
+    if (!shell) return;
+    const o = originRef.current!;
+    const content = panel.querySelector(".theme-focus-content") as HTMLElement;
+    const focusPanel = () => { panelRef.current?.focus(); };
+
+    // Resolve a floating, content-sized final rect: a centered card that hugs
+    // its content (capped to the shell), not a full-screen sheet.
+    const sr = shell.getBoundingClientRect();
+    const mobile = window.matchMedia("(max-width: 600px)").matches;
+    const mx = mobile ? 16 : 28;
+    const my = mobile ? 20 : 36;
+    const width = Math.min(sr.width - 2 * mx, 440);
+    const left = Math.round((sr.width - width) / 2);
+    panel.style.left = `${left}px`;
+    panel.style.top = `${my}px`;
+    panel.style.width = `${width}px`;
+    panel.style.height = "auto";
+    panel.style.borderRadius = "18px";
+    const natural = panel.offsetHeight;
+    const maxH = sr.height - 2 * my;
+    const height = Math.min(natural, maxH);
+    const top = Math.round((sr.height - height) / 2);
+    const f = { left, top, width, height, radius: 18 };
+    finalRef.current = f;
+
+    Object.assign(panel.style, {
+      left: `${f.left}px`, top: `${f.top}px`,
+      width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px`,
+    });
+
+    if (prefersReduced()) {
+      backdrop.style.opacity = "1";
+      content.style.opacity = "1";
+      focusPanel();
+      return;
+    }
+
+    const ease = "cubic-bezier(.2,.9,.25,1.05)";
+    const dur = 440;
+    // fill "none": the panel's resting state (inline final geometry + default
+    // opacities) IS the correct end state, so a throttled/non-ticking engine
+    // still shows it correctly; the animation only layers motion on top.
+    backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: "ease", fill: "none" });
+    panel.animate([
+      { left: `${o.left}px`, top: `${o.top}px`, width: `${o.width}px`, height: `${o.height}px`, borderRadius: "14px" },
+      { left: `${f.left}px`, top: `${f.top}px`, width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px` },
+    ], { duration: dur, easing: ease, fill: "none" });
+    content.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur, easing: "ease", fill: "none" });
+    const a = panel.getAnimations().pop();
+    if (a) a.onfinish = focusPanel;
+
+    // Guaranteed finish: after the animation's lifetime, cancel any still-running
+    // animations and pin the final visible state (protects against a throttled
+    // engine whose currentTime never advances).
+    const timer = window.setTimeout(() => {
+      if (panelRef.current !== panel) return;
+      [panel, backdrop, content].forEach((el) => el.getAnimations().forEach((an) => an.cancel()));
+      Object.assign(panel.style, {
+        left: `${f.left}px`, top: `${f.top}px`,
+        width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px`,
+      });
+      content.style.opacity = "1";
+      backdrop.style.opacity = "1";
+      focusPanel();
+    }, dur + 120);
+    return () => window.clearTimeout(timer);
+  }, [openIdx]);
+
+  // ----- close -----
+  const closeTheme = () => {
+    if (closingRef.current) return;
+    const panel = panelRef.current;
+    const backdrop = backdropRef.current;
+    const restore = () => {
+      setOpenIdx(null);
+      const el = lastFocusRef.current;
+      // defer until React commits the card back to visible — focus() is ignored
+      // on a visibility:hidden element
+      window.setTimeout(() => el?.focus(), 0);
+    };
+    if (!panel || !backdrop || prefersReduced()) { restore(); return; }
+    const o = originRef.current!;
+    const shell = panel.closest(".app") as HTMLElement;
+    const f = finalRef.current ?? { ...rectIn(panel, shell.getBoundingClientRect()), radius: 18 };
+    const content = panel.querySelector(".theme-focus-content") as HTMLElement;
+    closingRef.current = true;
+    const ease = "cubic-bezier(.2,.8,.2,1)";
+    const dur = 360;
+    backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: dur, easing: "ease", fill: "both" });
+    content.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: "ease", fill: "both" });
+    const a = panel.animate([
+      { left: `${f.left}px`, top: `${f.top}px`, width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px` },
+      { left: `${o.left}px`, top: `${o.top}px`, width: `${o.width}px`, height: `${o.height}px`, borderRadius: "14px" },
+    ], { duration: dur, easing: ease, fill: "both" });
+    let settled = false;
+    const finish = () => { if (settled) return; settled = true; closingRef.current = false; restore(); };
+    a.onfinish = finish;
+    window.setTimeout(finish, dur + 120);
+  };
+
+  // ----- focus trap + escape -----
+  const onPanelKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeTheme(); return; }
+    if (e.key !== "Tab") return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const f = panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+
+  const theme = openIdx != null ? CURATED_THEME_GROUPS[openIdx] : null;
+
   return (
     <>
       <TopBar onBack={onBack} onHelp={onHelp} />
       <div className="screen screen-enter">
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 18 }}>
           <div className="eyebrow">Round {roundNo}</div>
           <h2 className="display" style={{ margin: "8px 0 6px" }}>Choose a list</h2>
-          <p className="lede">Everyone will guess one answer to the same question.</p>
+          <p className="lede">Pick a theme. Everyone will guess one answer to the same question.</p>
         </div>
 
-        {openTheme ? (
-          <div className="stack" style={{ gap: 8, marginBottom: 18 }}>
+        <div className="theme-grid">
+          {CURATED_THEME_GROUPS.map((th, i) => (
             <button
+              key={th.name}
               type="button"
-              className="row"
-              style={{ gap: 6, color: "var(--ink-3)", fontSize: "0.9rem", fontWeight: 600, marginBottom: 4, alignSelf: "flex-start" }}
-              onClick={() => setOpenTheme(null)}
+              className="theme-card"
+              aria-haspopup="dialog"
+              aria-expanded={openIdx === i}
+              style={{ visibility: openIdx === i ? "hidden" : "visible" }}
+              onClick={(e) => openThemeAt(i, e.currentTarget)}
             >
-              <span style={{ transform: "rotate(180deg)", display: "inline-flex" }}><IcoChevron /></span> All categories
+              <span className="theme-card-name">{th.name}</span>
+              <span className="theme-card-blurb">{th.blurb}</span>
+              <span className="theme-card-count"><b className="tnum">{th.questions.length}</b> lists</span>
             </button>
-            {CURATED_THEME_GROUPS.find(t => t.name === openTheme)?.questions.map((q) => (
-              <button
-                key={q.id}
-                type="button"
-                className="card row pick-row"
-                onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
-                style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: "14px 16px", textAlign: "left" }}
-              >
-                <span style={{ fontWeight: 600, fontSize: "1rem", lineHeight: 1.25 }}>{q.q}</span>
-                <span style={{ color: "var(--ink-3)", flex: "none" }}><IcoChevron /></span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
-            {CURATED_THEME_GROUPS.map((theme) => (
-              <button
-                key={theme.name}
-                type="button"
-                className="card"
-                style={{ padding: 14, textAlign: "left", display: "flex", flexDirection: "column", gap: 4 }}
-                onClick={() => setOpenTheme(theme.name)}
-              >
-                <span style={{ fontWeight: 700, fontSize: "1rem", lineHeight: 1.2 }}>{theme.name}</span>
-                <span className="eyebrow" style={{ color: "var(--ink-3)", letterSpacing: "0.04em", textTransform: "none" }}>
-                  {theme.blurb}
-                </span>
-                <span className="eyebrow" style={{ color: "var(--ink-4)", marginTop: 4 }}>
-                  {theme.questions.length} lists
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
 
-        <div className="row" style={{ gap: 10, alignItems: "center", margin: "2px 0 16px" }}>
+        <div className="row" style={{ gap: 10, alignItems: "center", margin: "20px 0 16px" }}>
           <hr className="divider" style={{ flex: 1 }} />
           <span className="eyebrow">or</span>
           <hr className="divider" style={{ flex: 1 }} />
@@ -545,6 +668,49 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
 
         <button className="btn ghost block" onClick={pickRandom}>Surprise me</button>
       </div>
+
+      {theme && (
+        <>
+          <div className="theme-backdrop" ref={backdropRef} onClick={closeTheme} />
+          <div
+            className="theme-focus"
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="theme-focus-title"
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={onPanelKeyDown}
+          >
+            <div className="theme-focus-content">
+              <div className="theme-focus-head">
+                <div>
+                  <div className="eyebrow"><b className="tnum">{theme.questions.length}</b> lists</div>
+                  <h2 className="display" id="theme-focus-title" style={{ fontSize: "1.55rem", margin: "5px 0 3px", lineHeight: 1.05 }}>{theme.name}</h2>
+                  <p className="muted" style={{ fontSize: "0.9rem", margin: 0 }}>{theme.blurb}</p>
+                </div>
+                <button className="iconbtn" onClick={closeTheme} aria-label="Close theme"><IcoClose /></button>
+              </div>
+              <div className="theme-focus-body">
+                {theme.questions.map((q) => (
+                  <button
+                    key={q.id}
+                    type="button"
+                    className="pick-row theme-pick"
+                    onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
+                  >
+                    <span>
+                      <span className="eyebrow" style={{ color: "var(--ink-3)" }}>{q.cat}</span>
+                      <span className="theme-pick-q">{q.q}</span>
+                    </span>
+                    <span style={{ color: "var(--ink-3)", flex: "none" }}><IcoChevron /></span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
