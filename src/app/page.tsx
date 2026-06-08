@@ -162,7 +162,7 @@ function Sheet({ onClose, children }: { onClose: () => void; children: React.Rea
 
 const RULES: [string, React.ReactNode][] = [
   ["Pick a list", <>Choose a ranked question everyone gets, like <b>most populous countries</b> or <b>biggest movie franchises</b>.</>],
-  ["Everyone guesses secretly", <>Pass the phone around. Each player secretly names <b>one</b> thing they think is on the Top&nbsp;30 — no peeking at others' answers.</>],
+  ["Everyone guesses secretly", <>Pass the phone around. Each player secretly names <b>one</b> thing they think is on the Top&nbsp;30 — no peeking at others&rsquo; answers.</>],
   ["Rank equals points", <>Your guess scores <b>its rank number</b>. Guess #1 and you get just <b>1 point</b>. Guess #28 and you bank <b>28</b>. Aim low.</>],
   ["Duplicates split the points", <>If two players guess the <b>same answer</b>, they <b>split</b> the points equally. Half the reward for half the originality.</>],
   ["Miss the list, score zero", <>A guess not in the Top&nbsp;30 is worth <b>0</b>. Highest total after all rounds wins — ties are broken by whoever scored highest in the last round.</>],
