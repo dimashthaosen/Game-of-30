@@ -139,7 +139,7 @@ button { cursor: pointer; background: none; border: none; padding: 0; }
   height: 38px;
   border-radius: var(--radius-pill);
   color: var(--ink-2);
-  transition: background 120ms ease, color 120ms ease;
+  transition: background 200ms ease, color 200ms ease;
 }
 
 .iconbtn:hover { background: var(--paper); color: var(--ink); }
@@ -194,7 +194,7 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   border: 1.5px solid var(--ink);
   background: var(--surface);
   color: var(--ink);
-  transition: transform 80ms ease, background 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease, box-shadow 220ms ease, opacity 200ms ease;
 }
 
 .btn:active { transform: translateY(1px); }
@@ -222,7 +222,7 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   border: 1.5px solid var(--line-strong);
   background: var(--field);
   font-size: 1.05rem;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); outline: none; }
@@ -264,12 +264,12 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
 
 .card.selectable {
   cursor: pointer;
-  transition: border-color 120ms ease, transform 80ms ease, box-shadow 120ms ease;
+  transition: border-color 220ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease;
 }
 
 .card.selectable:hover { border-color: var(--ink); }
 
-.pick-row { cursor: pointer; transition: background 120ms ease; }
+.pick-row { cursor: pointer; transition: background 200ms ease; }
 .pick-row:hover { background: var(--paper); }
 
 /* ----- Scoreboard ----- */
@@ -369,10 +369,10 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
 }
 
 /* ----- Reveal animation ----- */
-.pop-in { animation: popIn 420ms cubic-bezier(.2,.9,.25,1.05) both; }
+.pop-in { animation: popIn 600ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 @keyframes popIn {
-  from { transform: translateY(9px) scale(0.985); }
+  from { transform: translateY(12px) scale(0.98); }
   to   { transform: none; }
 }
 
@@ -388,7 +388,7 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   align-items: flex-end;
   justify-content: center;
   padding: 0;
-  animation: fade 160ms ease both;
+  animation: fade 280ms ease both;
 }
 
 @media (min-width: 600px) { .backdrop { align-items: center; padding: 20px; } }
@@ -406,13 +406,13 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  animation: slideUp 240ms cubic-bezier(.2,.8,.2,1) both;
+  animation: slideUp 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (min-width: 600px) { .sheet { border-radius: 22px; } }
 
 @keyframes slideUp {
-  from { transform: translateY(24px); opacity: 0; }
+  from { transform: translateY(30px); opacity: 0; }
   to   { transform: none; opacity: 1; }
 }
 
@@ -471,7 +471,7 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
 
 /* ----- Progress dots ----- */
 .dots { display: flex; gap: 7px; justify-content: center; }
-.dots .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); transition: all 160ms ease; }
+.dots .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); transition: all 260ms cubic-bezier(0.22, 1, 0.36, 1); }
 .dots .dot.done { background: var(--accent); }
 .dots .dot.now { background: var(--ink); transform: scale(1.35); }
 
@@ -481,11 +481,11 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
 
 /* ----- Screen enter animation ----- */
 @media (prefers-reduced-motion: no-preference) {
-  .screen-enter { animation: screenIn 260ms ease; }
+  .screen-enter { animation: screenIn 440ms cubic-bezier(0.22, 1, 0.36, 1); }
 }
 
 @keyframes screenIn {
-  from { transform: translateY(6px); opacity: 0; }
+  from { transform: translateY(10px); opacity: 0; }
   to   { transform: none; opacity: 1; }
 }
 
@@ -510,7 +510,7 @@ h2.display { font-size: clamp(1.5rem, 6vw, 1.9rem); }
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
-  transition: transform 140ms cubic-bezier(.2,.9,.25,1.05), border-color 140ms ease, box-shadow 160ms ease;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms ease, box-shadow 240ms ease;
 }
 
 .theme-card:hover {

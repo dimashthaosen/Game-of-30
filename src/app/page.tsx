@@ -528,12 +528,12 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
       return;
     }
 
-    const ease = "cubic-bezier(.2,.9,.25,1.05)";
-    const dur = 440;
+    const ease = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const dur = 600;
     // fill "none": the panel's resting state (inline final geometry + default
     // opacities) IS the correct end state, so a throttled/non-ticking engine
     // still shows it correctly; the animation only layers motion on top.
-    backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: "ease", fill: "none" });
+    backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: "ease", fill: "none" });
     panel.animate([
       { left: `${o.left}px`, top: `${o.top}px`, width: `${o.width}px`, height: `${o.height}px`, borderRadius: "14px" },
       { left: `${f.left}px`, top: `${f.top}px`, width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px` },
@@ -577,10 +577,10 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
     const f = finalRef.current ?? { ...rectIn(panel, shell.getBoundingClientRect()), radius: 18 };
     const content = panel.querySelector(".theme-focus-content") as HTMLElement;
     closingRef.current = true;
-    const ease = "cubic-bezier(.2,.8,.2,1)";
-    const dur = 360;
+    const ease = "cubic-bezier(0.4, 0, 0.2, 1)";
+    const dur = 480;
     backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: dur, easing: "ease", fill: "both" });
-    content.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: "ease", fill: "both" });
+    content.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: "ease", fill: "both" });
     const a = panel.animate([
       { left: `${f.left}px`, top: `${f.top}px`, width: `${f.width}px`, height: `${f.height}px`, borderRadius: `${f.radius}px` },
       { left: `${o.left}px`, top: `${o.top}px`, width: `${o.width}px`, height: `${o.height}px`, borderRadius: "14px" },
