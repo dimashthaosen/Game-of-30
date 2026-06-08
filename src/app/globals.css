@@ -79,12 +79,14 @@ button { cursor: pointer; background: none; border: none; padding: 0; }
   /* Full-bleed on mobile: the white shell fills the screen, so the surrounding
      paper colour should not peek through behind the iOS Safari toolbar /
      home-indicator safe area. */
-  body { background: var(--surface); }
+  html, body { background: var(--surface); }
   .stage { padding: 0; }
   .app {
+    /* Remove all borders (the bottom one showed as a grey line) and let the
+       white shell paint edge-to-edge, including into the home-indicator safe
+       area, so there is no grey strip below the card. */
+    border: 0;
     border-radius: 0;
-    border-left: 0;
-    border-right: 0;
     height: 100vh;
     height: 100dvh;
   }
