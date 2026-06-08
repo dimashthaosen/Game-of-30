@@ -503,6 +503,225 @@ export const CURATED_QUESTIONS: CuratedQuestion[] = [
       "The Diary of a Young Girl": ["anne frank", "diary of anne frank"],
     },
   },
+  {
+    id: "gdp",
+    cat: "Economy",
+    q: "Largest economies in the world by GDP",
+    basis: "By nominal GDP, IMF 2024 estimates",
+    items: L(
+      ["United States", "USA"], "China", "Germany", "Japan", "India",
+      ["United Kingdom", "UK"], "France", "Italy", "Brazil", "Canada",
+      "Russia", ["South Korea", "Korea"], "Australia", "Mexico", "Spain",
+      "Indonesia", "Netherlands", "Saudi Arabia", "Turkey", "Switzerland",
+      "Taiwan", "Poland", "Sweden", "Belgium", "Argentina",
+      "Norway", "Israel", ["United Arab Emirates", "UAE"], "Nigeria", "Singapore"
+    ),
+    aliases: {
+      "United States": ["usa", "us", "america", "united states of america"],
+      "United Kingdom": ["uk", "britain", "great britain", "england"],
+      "South Korea": ["korea"],
+      "United Arab Emirates": ["uae", "emirates"],
+    },
+  },
+  {
+    id: "gdp-capita",
+    cat: "Economy",
+    q: "Countries with the highest GDP per capita",
+    basis: "By nominal GDP per capita, IMF 2024",
+    items: L(
+      "Luxembourg", "Singapore", "Ireland", "Switzerland", "Norway",
+      "Qatar", ["United States", "USA"], "Iceland", "Denmark", "Australia",
+      "Netherlands", "Sweden", "Austria", "Finland", "Belgium",
+      ["United Arab Emirates", "UAE"], "Canada", "Germany", "New Zealand", ["United Kingdom", "UK"],
+      "France", "San Marino", "Japan", "Malta", "Italy",
+      ["South Korea", "Korea"], "Bahrain", ["Czech Republic", "Czechia"], "Spain", "Slovenia"
+    ),
+    aliases: {
+      "United States": ["usa", "us", "america"],
+      "United Kingdom": ["uk", "britain", "england"],
+      "United Arab Emirates": ["uae", "emirates"],
+      "Czech Republic": ["czechia", "czech"],
+      "South Korea": ["korea"],
+    },
+  },
+  {
+    id: "billionaires",
+    cat: "Economy",
+    q: "World's wealthiest people",
+    basis: "By net worth, Forbes 2025 (approx)",
+    items: L(
+      "Elon Musk", "Jeff Bezos", "Mark Zuckerberg", "Larry Ellison", "Bill Gates",
+      "Warren Buffett", "Larry Page", "Sergey Brin", "Jensen Huang", "Steve Ballmer",
+      "Mukesh Ambani", "Bernard Arnault", "Michael Dell", "Rob Walton", "Jim Walton",
+      "Alice Walton", "Carlos Slim Helú", "Françoise Bettencourt Meyers", "Michael Bloomberg", "Gautam Adani",
+      "MacKenzie Scott", "Phil Knight", "Zhong Shanshan", "Zhang Yiming", "Ken Griffin",
+      "Stephen Schwarzman", "David Thomson", "He Xiangjian", "Pony Ma", "Li Ka-shing"
+    ),
+    aliases: {
+      "Elon Musk": ["musk"],
+      "Jeff Bezos": ["bezos"],
+      "Mark Zuckerberg": ["zuckerberg", "zuck"],
+      "Jensen Huang": ["jensen"],
+      "Warren Buffett": ["buffett", "buffet"],
+      "Carlos Slim Helú": ["carlos slim"],
+      "Françoise Bettencourt Meyers": ["bettencourt"],
+      "Kanye West": ["ye"],
+      "Pony Ma": ["ma huateng"],
+    },
+  },
+  {
+    id: "tourists",
+    cat: "Travel",
+    q: "Most visited countries by international tourists",
+    basis: "By international arrivals, UNWTO 2023",
+    items: L(
+      "France", "Spain", ["United States", "USA"], "Turkey", "Italy",
+      "Mexico", ["United Kingdom", "UK"], "Germany", "Greece", "Austria",
+      "Thailand", "Malaysia", "Japan", "Saudi Arabia", "Canada",
+      "Portugal", "Poland", "China", "Netherlands", "Croatia",
+      "Morocco", ["United Arab Emirates", "UAE"], ["Czech Republic", "Czechia"], "Hungary", "Australia",
+      "Switzerland", ["South Korea", "Korea"], "India", "Russia", "Indonesia"
+    ),
+    aliases: {
+      "United States": ["usa", "us", "america"],
+      "United Kingdom": ["uk", "britain", "england"],
+      "United Arab Emirates": ["uae", "emirates"],
+      "Czech Republic": ["czechia", "czech"],
+      "South Korea": ["korea"],
+    },
+  },
+  {
+    id: "fast-food",
+    cat: "Food",
+    q: "Largest fast food chains by number of locations",
+    basis: "By total global locations, approx 2024",
+    items: L(
+      "McDonald's", "Subway", "Starbucks", "KFC", "Burger King",
+      "Domino's", "Pizza Hut", "Dunkin'", "Baskin-Robbins", "Tim Hortons",
+      "Dairy Queen", "Taco Bell", "Wendy's", "Chick-fil-A", "Papa John's",
+      "Little Caesars", "Sonic", "Arby's", "Popeyes", "Church's Chicken",
+      "Panda Express", "Chipotle", "Jack in the Box", "Five Guys", "Wingstop",
+      "Jersey Mike's", "Jimmy John's", "Hardee's", "Shake Shack", "In-N-Out Burger"
+    ),
+    aliases: {
+      "McDonald's": ["mcdonalds"],
+      "KFC": ["kentucky fried chicken"],
+      "Domino's": ["dominos"],
+      "Dunkin'": ["dunkin donuts", "dunkin"],
+      "Tim Hortons": ["tim horton's", "timmies"],
+      "Chick-fil-A": ["chick fil a", "chick-fil-a"],
+      "Papa John's": ["papa johns"],
+      "Church's Chicken": ["texas chicken"],
+      "Hardee's": ["carl's jr", "carls jr"],
+    },
+  },
+  {
+    id: "websites",
+    cat: "Internet",
+    q: "Most visited websites in the world",
+    basis: "By monthly web traffic, Similarweb 2025",
+    items: L(
+      "Google", "YouTube", "Facebook", "Instagram", "Wikipedia",
+      ["X", "Twitter"], "Reddit", "TikTok", "Amazon", "Yahoo",
+      "WhatsApp", "Netflix", "Bing", "LinkedIn", "Pinterest",
+      "Twitch", "Microsoft", "Discord", "Zoom", "DuckDuckGo",
+      "Quora", "eBay", "ESPN", "Spotify", "GitHub",
+      "Stack Overflow", "Craigslist", "Airbnb", "CNN", "IMDb"
+    ),
+    aliases: {
+      "X": ["twitter"],
+      "Wikipedia": ["wiki"],
+      "DuckDuckGo": ["ddg"],
+      "Stack Overflow": ["stackoverflow"],
+    },
+  },
+  {
+    id: "spotify",
+    cat: "Music",
+    q: "Most monthly listeners on Spotify",
+    basis: "By peak monthly listeners, approx 2025",
+    items: L(
+      ["The Weeknd", "Abel"], "Taylor Swift", "Bad Bunny", "Drake", "Ed Sheeran",
+      "Ariana Grande", "Billie Eilish", "Eminem", "Post Malone", "Justin Bieber",
+      "Harry Styles", "Dua Lipa", "Coldplay", "BTS", "Rihanna",
+      "Imagine Dragons", "Travis Scott", ["Kanye West", "Ye"], "Juice WRLD", "Kendrick Lamar",
+      "SZA", "J. Cole", "Olivia Rodrigo", "Morgan Wallen", "Sam Smith",
+      "Shawn Mendes", "Future", "Luke Combs", "BLACKPINK", "Sabrina Carpenter"
+    ),
+    aliases: {
+      "The Weeknd": ["abel", "weeknd"],
+      "Bad Bunny": ["benito"],
+      "Kanye West": ["ye", "yeezy"],
+      "BTS": ["bangtan"],
+      "BLACKPINK": ["black pink"],
+    },
+  },
+  {
+    id: "tiktok",
+    cat: "Internet",
+    q: "Most followed accounts on TikTok",
+    basis: "By followers, approx 2025",
+    items: L(
+      "Khaby Lame", "Charli D'Amelio", "Bella Poarch", "MrBeast", "Kimberly Loaiza",
+      "Addison Rae", "Zach King", "TikTok", "Brent Rivera", "Loren Gray",
+      "Jason Derulo", "Spencer X", "SSSniperWolf", "Avani Gregg", "Dixie D'Amelio",
+      "Selena Gomez", "James Charles", "David Dobrik", "NBA", "Shakira",
+      ["Dwayne Johnson", "The Rock"], "Cardi B", "Will Smith", "Kylie Jenner", "Kim Kardashian",
+      "Doja Cat", "Michael Le", "Bella Hadid", "Nicki Minaj", "Lizzo"
+    ),
+    aliases: {
+      "Khaby Lame": ["khaby"],
+      "Charli D'Amelio": ["charli"],
+      "Dixie D'Amelio": ["dixie"],
+      "MrBeast": ["mr beast"],
+      "Dwayne Johnson": ["the rock"],
+      "SSSniperWolf": ["sssniperwolf"],
+    },
+  },
+  {
+    id: "crops",
+    cat: "Nature",
+    q: "Most produced crops in the world by weight",
+    basis: "By annual production, FAO 2022",
+    items: L(
+      "Sugarcane", ["Maize", "Corn"], "Wheat", "Rice", ["Oil Palm Fruit", "Palm Oil"],
+      "Potato", "Soybean", "Cassava", "Sugar Beet", "Barley",
+      "Tomato", "Banana", "Watermelon", "Onion", "Sweet Potato",
+      ["Rapeseed", "Canola"], "Apple", "Grape", "Sorghum", "Cabbage",
+      "Coconut", "Cucumber", "Orange", "Yam", "Mango",
+      "Sunflower Seed", ["Groundnut", "Peanut"], "Carrot", "Cotton", "Pineapple"
+    ),
+    aliases: {
+      "Maize": ["corn"],
+      "Oil Palm Fruit": ["palm oil", "palm fruit", "oil palm"],
+      "Rapeseed": ["canola"],
+      "Groundnut": ["peanut", "peanuts", "groundnuts"],
+    },
+  },
+  {
+    id: "fast-animals",
+    cat: "Nature",
+    q: "Fastest land animals in the world",
+    basis: "By recorded top speed",
+    items: L(
+      "Cheetah", "Pronghorn", "Springbok", "Wildebeest", "Lion",
+      ["Thomson's Gazelle", "Gazelle"], "Blackbuck", ["Quarter Horse", "Horse"], "African Wild Dog", "Jackrabbit",
+      "Greyhound", "Coyote", "Ostrich", "Elk", "Mongolian Gazelle",
+      "Serval", "Mule Deer", "Zebra", "Hyena", "Impala",
+      "Kangaroo", "Giraffe", "European Hare", "Grey Wolf", "Moose",
+      "Reindeer", "Grizzly Bear", "Tiger", "Red Fox", "Polar Bear"
+    ),
+    aliases: {
+      "Thomson's Gazelle": ["gazelle", "thomsons gazelle"],
+      "Quarter Horse": ["horse"],
+      "African Wild Dog": ["wild dog", "painted dog"],
+      "Jackrabbit": ["jack rabbit"],
+      "European Hare": ["hare"],
+      "Grey Wolf": ["wolf", "gray wolf"],
+      "Grizzly Bear": ["grizzly", "brown bear"],
+      "Red Fox": ["fox"],
+    },
+  },
 ];
 
 export type CuratedTheme = {
@@ -512,12 +731,13 @@ export type CuratedTheme = {
 };
 
 export const CURATED_THEMES: CuratedTheme[] = [
-  { name: "World & Geography", blurb: "Countries, cities, places", ids: ["countries", "area", "cities", "states"] },
-  { name: "Nature & Science", blurb: "Mountains, rivers, elements", ids: ["mountains", "rivers", "elements", "languages"] },
+  { name: "World & Geography", blurb: "Countries, cities, places", ids: ["countries", "area", "cities", "states", "tourists"] },
+  { name: "Nature & Science", blurb: "Mountains, rivers, wildlife, crops", ids: ["mountains", "rivers", "elements", "languages", "fast-animals", "crops"] },
   { name: "India", blurb: "States, cities, cinema", ids: ["in-states", "in-cities", "in-area", "in-films"] },
   { name: "Movies", blurb: "Box-office giants", ids: ["franchises", "films", "animated"] },
-  { name: "Pop Culture", blurb: "Games, music, the internet", ids: ["games", "music", "youtube", "instagram"] },
+  { name: "Pop Culture & The Internet", blurb: "Games, music, social media, the web", ids: ["games", "music", "youtube", "instagram", "spotify", "tiktok", "websites"] },
   { name: "Money & Records", blurb: "Business, sport, books, towers", ids: ["companies", "olympics", "books", "buildings"] },
+  { name: "Economy & Wealth", blurb: "GDP, billionaires, global brands", ids: ["gdp", "gdp-capita", "billionaires", "fast-food"] },
 ];
 
 const QUESTION_BY_ID = new Map(CURATED_QUESTIONS.map((q) => [q.id, q]));

@@ -162,10 +162,10 @@ function Sheet({ onClose, children }: { onClose: () => void; children: React.Rea
 
 const RULES: [string, React.ReactNode][] = [
   ["Pick a list", <>Choose a ranked question everyone gets, like <b>most populous countries</b> or <b>biggest movie franchises</b>.</>],
-  ["Everyone guesses one answer", <>Pass the phone. Each player secretly names <b>one</b> thing they think is on the Top&nbsp;30.</>],
-  ["Rank equals points", <>Your guess scores <b>its rank number</b>. Guess #1 and you get just <b>1 point</b>. Guess #28 and you bank <b>28</b>.</>],
-  ["Reward the deep cuts", <>The game is won on the long tail — name the surprising thing that <b>barely</b> makes the list.</>],
-  ["Miss the list, score zero", <>A guess not in the Top&nbsp;30 is worth <b>0</b>. Highest total after all rounds <b>wins</b>.</>],
+  ["Everyone guesses secretly", <>Pass the phone around. Each player secretly names <b>one</b> thing they think is on the Top&nbsp;30 — no peeking at others' answers.</>],
+  ["Rank equals points", <>Your guess scores <b>its rank number</b>. Guess #1 and you get just <b>1 point</b>. Guess #28 and you bank <b>28</b>. Aim low.</>],
+  ["Duplicates split the points", <>If two players guess the <b>same answer</b>, they <b>split</b> the points equally. Half the reward for half the originality.</>],
+  ["Miss the list, score zero", <>A guess not in the Top&nbsp;30 is worth <b>0</b>. Highest total after all rounds wins — ties are broken by whoever scored highest in the last round.</>],
 ];
 
 function RulesSheet({ onClose }: { onClose: () => void }) {
@@ -466,47 +466,50 @@ function QuestionScreen({ roundNo, onPick, onBack, onHelp }: {
           <p className="lede">Everyone will guess one answer to the same question.</p>
         </div>
 
-        <div className="stack" style={{ gap: 10, marginBottom: 18 }}>
-          {CURATED_THEME_GROUPS.map((theme) => {
-            const open = openTheme === theme.name;
-            return (
-              <div className="card" key={theme.name} style={{ padding: 0, overflow: "hidden" }}>
-                <button
-                  type="button"
-                  className="row"
-                  style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: 16, textAlign: "left" }}
-                  onClick={() => setOpenTheme(open ? null : theme.name)}
-                >
-                  <span>
-                    <span style={{ display: "block", fontWeight: 700, fontSize: "1.08rem", lineHeight: 1.2 }}>{theme.name}</span>
-                    <span className="eyebrow" style={{ color: "var(--ink-3)", display: "block", marginTop: 4, letterSpacing: "0.04em", textTransform: "none" }}>
-                      {theme.blurb} · {theme.questions.length} lists
-                    </span>
-                  </span>
-                  <span style={{ color: "var(--ink-3)", transform: open ? "rotate(90deg)" : "none", transition: "transform 160ms ease", flex: "none" }}>
-                    <IcoChevron />
-                  </span>
-                </button>
-                {open && (
-                  <div className="stack" style={{ borderTop: "1px solid var(--line)" }}>
-                    {theme.questions.map((q) => (
-                      <button
-                        key={q.id}
-                        type="button"
-                        className="row pick-row"
-                        onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
-                        style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: "13px 16px", textAlign: "left", borderTop: "1px solid var(--line)" }}
-                      >
-                        <span style={{ fontWeight: 600, fontSize: "1rem", lineHeight: 1.25 }}>{q.q}</span>
-                        <span style={{ color: "var(--ink-3)", flex: "none" }}><IcoChevron /></span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        {openTheme ? (
+          <div className="stack" style={{ gap: 8, marginBottom: 18 }}>
+            <button
+              type="button"
+              className="row"
+              style={{ gap: 6, color: "var(--ink-3)", fontSize: "0.9rem", fontWeight: 600, marginBottom: 4, alignSelf: "flex-start" }}
+              onClick={() => setOpenTheme(null)}
+            >
+              <span style={{ transform: "rotate(180deg)", display: "inline-flex" }}><IcoChevron /></span> All categories
+            </button>
+            {CURATED_THEME_GROUPS.find(t => t.name === openTheme)?.questions.map((q) => (
+              <button
+                key={q.id}
+                type="button"
+                className="card row pick-row"
+                onClick={() => onPick({ id: q.id, cat: q.cat, q: q.q, basis: q.basis, items: q.items, aliases: q.aliases })}
+                style={{ width: "100%", justifyContent: "space-between", gap: 12, padding: "14px 16px", textAlign: "left" }}
+              >
+                <span style={{ fontWeight: 600, fontSize: "1rem", lineHeight: 1.25 }}>{q.q}</span>
+                <span style={{ color: "var(--ink-3)", flex: "none" }}><IcoChevron /></span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+            {CURATED_THEME_GROUPS.map((theme) => (
+              <button
+                key={theme.name}
+                type="button"
+                className="card"
+                style={{ padding: 14, textAlign: "left", display: "flex", flexDirection: "column", gap: 4 }}
+                onClick={() => setOpenTheme(theme.name)}
+              >
+                <span style={{ fontWeight: 700, fontSize: "1rem", lineHeight: 1.2 }}>{theme.name}</span>
+                <span className="eyebrow" style={{ color: "var(--ink-3)", letterSpacing: "0.04em", textTransform: "none" }}>
+                  {theme.blurb}
+                </span>
+                <span className="eyebrow" style={{ color: "var(--ink-4)", marginTop: 4 }}>
+                  {theme.questions.length} lists
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="row" style={{ gap: 10, alignItems: "center", margin: "2px 0 16px" }}>
           <hr className="divider" style={{ flex: 1 }} />
