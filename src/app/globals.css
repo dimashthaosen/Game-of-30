@@ -83,8 +83,11 @@ button { cursor: pointer; background: none; border: none; padding: 0; }
     border-radius: 0;
     border-left: 0;
     border-right: 0;
+    /* Fill the LARGE viewport so the shell extends to the very bottom and the
+       iOS Safari floating toolbar overlays the bottom of the app, rather than
+       the app shrinking to sit above it (dvh). */
     height: 100vh;
-    height: 100dvh;
+    height: 100lvh;
   }
 }
 
