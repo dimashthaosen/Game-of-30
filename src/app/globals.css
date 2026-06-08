@@ -3,8 +3,10 @@
    ============================================================ */
 
 :root {
-  --font-ui: "Libre Franklin", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  /* --font-ui / --font-display are provided by next/font (see layout.tsx),
+     which bundles a metric-adjusted fallback so the swap to the web font
+     causes no visible resize. Do NOT redefine them here — a hardcoded stack
+     overrides that fallback and makes the text reflow once the font loads. */
 
   --accent: #f4c430;
   --accent-ink: #1a1a1a;
