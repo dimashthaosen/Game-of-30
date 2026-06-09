@@ -79,8 +79,18 @@ button { cursor: pointer; background: none; border: none; padding: 0; }
   /* Full-bleed on mobile: the white shell fills the screen, so the surrounding
      paper colour should not peek through behind the iOS Safari toolbar /
      home-indicator safe area. */
-  html, body { background: var(--surface); }
-  .stage { padding: 0; }
+  html, body {
+    background: var(--surface);
+    /* Lock the document: the app shell is exactly one viewport tall and the
+       .screen scrolls internally, so the page itself must never scroll. This
+       prevents (a) the browser leaving the page panned half-way after the
+       on-screen keyboard closes and (b) overscroll exposing grey canvas
+       below the shell. */
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .stage { padding: 0; min-height: 0; height: 100dvh; }
   .app {
     /* Remove all borders (the bottom one showed as a grey line) and let the
        white shell paint edge-to-edge, including into the home-indicator safe

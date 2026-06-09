@@ -38,6 +38,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: "#ffffff",
+  // Android: shrink the layout for the on-screen keyboard instead of panning
+  // the page (which could leave the app stuck half-scrolled on dismiss).
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

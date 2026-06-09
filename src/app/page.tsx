@@ -1118,6 +1118,20 @@ export default function Home() {
     if (hasLoaded) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
   }, [game, hasLoaded]);
 
+  // iOS Safari pans the page to keep a focused input above the on-screen
+  // keyboard and can leave the page wedged half-scrolled after the keyboard
+  // closes. The document itself never needs to scroll (the .screen scrolls
+  // internally), so snap the window back whenever focus leaves a field.
+  useEffect(() => {
+    const snapBack = () => {
+      requestAnimationFrame(() => {
+        if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+      });
+    };
+    window.addEventListener("focusout", snapBack);
+    return () => window.removeEventListener("focusout", snapBack);
+  }, []);
+
   const totals = useMemo(() => calculateTotals(game), [game]);
   const standings = useMemo(
     () => [...game.players].sort((a, b) => (totals[b.id] ?? 0) - (totals[a.id] ?? 0)),
